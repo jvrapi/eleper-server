@@ -17,7 +17,7 @@ class UserToken {
 	@CreateDateColumn()
 	created_at: Date;
 
-	@Column()
+	@Column({ name: 'user_id' })
 	userId: string;
 
 	@ManyToOne(() => User, (user) => user.userToken)

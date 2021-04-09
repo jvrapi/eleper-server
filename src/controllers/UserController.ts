@@ -14,31 +14,63 @@ class UserController {
 		const { username, password } = request.body;
 
 		const repository = getRepository(User);
-
 		const userTokenRepository = getRepository(UserToken);
 
-		const secretKey = process.env.SECRET_KEY;
 		try {
-			const user = await repository.findOne({ where: { email: username } });
+			const user = await repository.findOne({
+				where: { email: username },
+			});
 
 			if (user) {
 				const passwordIsValid = bcrypt.compare(password, user.password);
 
 				if (!passwordIsValid) {
-					return response.status(401).send('Senha inválida');
+					return response.status(401).json('Senha inválida');
 				}
 
-				const token = jwt.sign({ id: user.id }, secretKey || 'secret');
-				const userToken = userTokenRepository.create({
-					id: token,
-					userId: user.id,
+				const userToken = await userTokenRepository.findOne({
+					where: { userId: user.id },
 				});
-				await userTokenRepository.save(userToken);
-				return response.json(userView.authentication(userToken));
+
+				return response.json(userView.authentication(userToken as UserToken));
 			}
-			return response.send('Usuario não encontrado');
+			return response.json('Usuario não encontrado');
+		} catch (error) {
+			console.log(error);
+			return response.status(500).json('Erro ao tentar autenticar o usuário');
+		}
+	}
+
+	async save(request: Request, response: Response) {
+		const { name, email, cpf, password, birth } = request.body;
+
+		const secretKey = process.env.SECRET_KEY;
+
+		const userTokenRepository = getRepository(UserToken);
+
+		const repository = getRepository(User);
+		try {
+			const emailAlreadyExists = await repository.findOne({ where: { email } });
+
+			if (emailAlreadyExists) {
+				return response.status(409).json('E-mail já está cadastrado');
+			}
+			const newUser = repository.create({ name, email, cpf, password, birth });
+
+			await repository.save(newUser);
+
+			const token = jwt.sign({ id: newUser.id }, secretKey || 'secret');
+
+			const userToken = userTokenRepository.create({
+				id: token,
+				userId: newUser.id,
+			});
+
+			await userTokenRepository.save(userToken);
+
+			return response.status(201).json(userView.newUser(newUser, userToken.id));
 		} catch {
-			return response.status(500).send('Erro ao tentar autenticar o usuário');
+			return response.status(500).json('Erro ao tentar salvar o usuário');
 		}
 	}
 }

@@ -28,6 +28,9 @@ class User {
 	@Column()
 	password: string;
 
+	@Column()
+	birth: Date;
+
 	constructor() {
 		if (!this.id) {
 			this.id = uuid();

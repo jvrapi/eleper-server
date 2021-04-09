@@ -6,5 +6,6 @@ const routes = Router();
 const userController = new UserController();
 
 routes.post('/authentication', userController.authentication);
+routes.post('/', userController.save);
 
 export default routes;
