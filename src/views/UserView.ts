@@ -4,7 +4,11 @@ import UserToken from '../models/UserToken';
 class UserView {
 	authentication(userToken: UserToken) {
 		return {
-			user: userToken.userId,
+			user: {
+				id: userToken.userId,
+				name: userToken.user.name,
+				email: userToken.user.email,
+			},
 			token: userToken.id,
 		};
 	}

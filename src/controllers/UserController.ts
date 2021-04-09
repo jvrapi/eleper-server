@@ -30,6 +30,7 @@ class UserController {
 
 				const userToken = await userTokenRepository.findOne({
 					where: { userId: user.id },
+					relations: ['user'],
 				});
 
 				return response.json(userView.authentication(userToken as UserToken));
