@@ -22,7 +22,7 @@ class UserController {
 			});
 
 			if (user) {
-				const passwordIsValid = bcrypt.compare(password, user.password);
+				const passwordIsValid = await bcrypt.compare(password, user.password);
 
 				if (!passwordIsValid) {
 					return response.status(401).json('Senha inválida');
@@ -35,9 +35,8 @@ class UserController {
 
 				return response.json(userView.authentication(userToken as UserToken));
 			}
-			return response.json('Usuario não encontrado');
+			return response.status(404).json('Usuario não encontrado');
 		} catch (error) {
-			console.log(error);
 			return response.status(500).json('Erro ao tentar autenticar o usuário');
 		}
 	}
