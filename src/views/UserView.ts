@@ -7,7 +7,6 @@ class UserView {
 			user: {
 				id: userToken.userId,
 				name: userToken.user.name,
-				email: userToken.user.email,
 			},
 			token: userToken.id,
 		};
@@ -15,11 +14,10 @@ class UserView {
 
 	newUser(user: User, token: string) {
 		return {
-			id: user.id,
-			name: user.name,
-			email: user.email,
-			cpf: user.cpf,
-			birth: user.birth,
+			user: {
+				id: user.id,
+				name: user.name,
+			},
 			token: token,
 		};
 	}

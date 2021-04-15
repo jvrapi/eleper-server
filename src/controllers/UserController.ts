@@ -52,8 +52,14 @@ class UserController {
 		try {
 			const emailAlreadyExists = await repository.findOne({ where: { email } });
 
+			const cpfAlreadyExists = await repository.findOne({ where: { cpf } });
+
 			if (emailAlreadyExists) {
-				return response.status(409).json('E-mail já está cadastrado');
+				return response.status(409).json('E-mail já possui cadastro');
+			}
+
+			if (cpfAlreadyExists) {
+				return response.status(409).json('CPF já possui cadastro');
 			}
 			const newUser = repository.create({ name, email, cpf, password, birth });
 
