@@ -31,6 +31,9 @@ class User {
 	@Column()
 	birth: Date;
 
+	@Column('varchar', { nullable: true })
+	code: string | null;
+
 	constructor() {
 		if (!this.id) {
 			this.id = uuid();

@@ -25,7 +25,7 @@ class UserController {
 				const passwordIsValid = await bcrypt.compare(password, user.password);
 
 				if (!passwordIsValid) {
-					return response.status(401).json('Senha inválida');
+					return response.status(401).json({ error: 'Senha inválida' });
 				}
 
 				const userToken = await userTokenRepository.findOne({
@@ -35,9 +35,11 @@ class UserController {
 
 				return response.json(userView.authentication(userToken as UserToken));
 			}
-			return response.status(404).json('Usuario não encontrado');
+			return response.status(404).json({ error: 'Usuario não encontrado' });
 		} catch (error) {
-			return response.status(500).json('Erro ao tentar autenticar o usuário');
+			return response
+				.status(500)
+				.json({ error: 'Erro ao tentar autenticar o usuário' });
 		}
 	}
 
@@ -55,13 +57,21 @@ class UserController {
 			const cpfAlreadyExists = await repository.findOne({ where: { cpf } });
 
 			if (emailAlreadyExists) {
-				return response.status(409).json('E-mail já possui cadastro');
+				return response
+					.status(409)
+					.json({ error: 'E-mail já possui cadastro' });
 			}
 
 			if (cpfAlreadyExists) {
-				return response.status(409).json('CPF já possui cadastro');
+				return response.status(409).json({ error: 'CPF já possui cadastro' });
 			}
-			const newUser = repository.create({ name, email, cpf, password, birth });
+			const newUser = repository.create({
+				name,
+				email,
+				cpf: cpf.replace(/\D/g, ''),
+				password,
+				birth,
+			});
 
 			await repository.save(newUser);
 
@@ -76,7 +86,37 @@ class UserController {
 
 			return response.status(201).json(userView.newUser(newUser, userToken.id));
 		} catch {
-			return response.status(500).json('Erro ao tentar salvar o usuário');
+			return response
+				.status(500)
+				.json({ error: 'Erro ao tentar salvar o usuário' });
+		}
+	}
+
+	async redefinePassword(request: Request, response: Response) {
+		const { email, password, code } = request.body;
+
+		const repository = getRepository(User);
+
+		try {
+			const user = await repository.findOne({ email });
+
+			if (user?.code !== code) {
+				return response.status(500).json({ error: 'Código inválido' });
+			}
+
+			const updateUser = repository.create({
+				...user,
+				code: null,
+				password,
+			});
+
+			await repository.save(updateUser);
+
+			return response.json(userView.details(updateUser));
+		} catch {
+			return response
+				.status(500)
+				.json({ error: 'Erro ao tentar redefinir a senha' });
 		}
 	}
 }
