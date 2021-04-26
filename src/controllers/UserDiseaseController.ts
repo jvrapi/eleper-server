@@ -3,16 +3,21 @@ import { getRepository } from 'typeorm';
 import * as Yup from 'Yup';
 
 import UserDisease from '../models/UserDisease';
+import UserDiseaseView from '../views/UserDiseaseView';
+
+const userDiseaseView = new UserDiseaseView();
 
 class UserDiseaseController {
   async list(request: Request, response: Response) {
     const { userId } = request.params;
     const repository = getRepository(UserDisease);
     try {
-      const diseases = await repository.find({ userId });
-      return response.json(diseases);
+      const diseases = await repository.find({
+        where: { userId },
+        relations: ['disease', 'user'],
+      });
+      return response.json(userDiseaseView.listDiseases(diseases));
     } catch (error) {
-      console.log(error);
       return response
         .status(500)
         .json({ error: 'Erro ao tentar listar as doênças do usuario' });
