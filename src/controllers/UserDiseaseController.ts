@@ -24,9 +24,8 @@ class UserDiseaseController {
     }
   }
 
-  async save(request: Request, response: Response) {
+  async saveMany(request: Request, response: Response) {
     const diseases: UserDisease[] = request.body;
-    const userId = request.userId;
 
     const repository = getRepository(UserDisease);
 
@@ -37,25 +36,26 @@ class UserDiseaseController {
           diseaseId: Yup.string()
             .uuid('Id informado inválido')
             .required('Informe o id da doença'),
+          userId: Yup.string()
+            .uuid('Id informado inválido')
+            .required('Informe o id do usuário'),
           diagnosisDate: Yup.date(),
-          active: Yup.boolean().required(
-            'Informe se a doença está em tratamento ou não'
-          ),
+          active: Yup.boolean(),
         })
       );
 
     try {
       await schema.validate(diseases, { abortEarly: false });
       const userDiseases = await Promise.all(
-        diseases.map(async (disease) => {
-          const userDiseaseData = { ...disease, userId };
-          const saveDisease = repository.create(userDiseaseData);
+        diseases.map(async (userDisease) => {
+          const saveDisease = repository.create(userDisease);
           await repository.save(saveDisease);
           return saveDisease;
         })
       );
       return response.status(201).json(userDiseases);
     } catch (err) {
+      console.log(err);
       const validationErrors: Record<string, string> = {};
       if (err instanceof Yup.ValidationError) {
         err.inner.forEach((error) => {

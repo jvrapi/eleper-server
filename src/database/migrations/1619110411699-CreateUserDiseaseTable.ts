@@ -7,14 +7,17 @@ export class CreateUserDiseaseTable1619110411699 implements MigrationInterface {
         name: 'user_disease',
         columns: [
           {
-            name: 'user_id',
+            name: 'id',
             type: 'varchar',
             isPrimary: true,
           },
           {
+            name: 'user_id',
+            type: 'varchar',
+          },
+          {
             name: 'disease_id',
             type: 'varchar',
-            isPrimary: true,
           },
           {
             name: 'diagnosis_date',
@@ -24,6 +27,8 @@ export class CreateUserDiseaseTable1619110411699 implements MigrationInterface {
           {
             name: 'active',
             type: 'tinyint',
+            isNullable: true,
+            default: '1',
           },
         ],
         foreignKeys: [
