@@ -7,6 +7,7 @@ class UserView {
       user: {
         id: userToken.userId,
         name: userToken.user.name,
+        photoUrl: userToken.user.photoUrl,
       },
       token: userToken.id,
     };

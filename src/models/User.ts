@@ -36,6 +36,9 @@ class User {
   @Column('varchar', { nullable: true })
   code: string | null;
 
+  @Column('varchar', { name: 'photo_url', nullable: true })
+  photoUrl: string | null;
+
   constructor() {
     if (!this.id) {
       this.id = uuid();
