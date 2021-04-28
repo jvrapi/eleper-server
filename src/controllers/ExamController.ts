@@ -3,9 +3,29 @@ import path from 'path';
 import { getRepository } from 'typeorm';
 import * as Yup from 'yup';
 
+import handleErrors from '../errors';
 import Exam from '../models/Exam';
 
 class ExamController {
+  async list(request: Request, response: Response) {
+    const { id } = request.params;
+    const repository = getRepository(Exam);
+    const schema = Yup.object().shape({
+      id: Yup.string()
+        .uuid('Id informado iválido')
+        .required('Informe o id do usuario'),
+    });
+
+    try {
+      await schema.validate({ id }, { abortEarly: false });
+
+      const exams = await repository.find({ userId: id });
+
+      return response.json(exams);
+    } catch (err) {
+      return handleErrors(err, response, 'Erro ao tentar listar os exames');
+    }
+  }
   async save(request: Request, response: Response) {
     const { name, userId } = request.body;
     const repository = getRepository(Exam);
@@ -36,18 +56,7 @@ class ExamController {
 
       return response.status(201).json(exam);
     } catch (err) {
-      const validationErrors: Record<string, string> = {};
-
-      if (err instanceof Yup.ValidationError) {
-        err.inner.forEach((error) => {
-          validationErrors[error.path as string] = error.message;
-        });
-
-        return response.status(500).json(validationErrors);
-      }
-      return response
-        .status(500)
-        .json('Ocorreu um erro ao cadastrar esse exame');
+      return handleErrors(err, response, 'Erro ao tentar salvar o exame');
     }
   }
 
@@ -57,9 +66,11 @@ class ExamController {
 
     const repository = getRepository(Exam);
 
-    const schema = Yup.string()
-      .uuid('Id informado invválido')
-      .required('Informe o id do exam para continuar');
+    const schema = Yup.object().shape({
+      id: Yup.string()
+        .uuid('Id informado iválido')
+        .required('Informe o id do usuario'),
+    });
 
     try {
       await schema.validate(id);
@@ -77,20 +88,12 @@ class ExamController {
           .status(401)
           .json({ message: 'você não tem acesso a este arquivo' });
       }
+
       const filePath = path.join(__dirname, '..', '..', 'uploads', exam.path);
 
       return response.download(filePath);
     } catch (err) {
-      const validationErrors: Record<string, string> = {};
-
-      if (err instanceof Yup.ValidationError) {
-        err.inner.forEach((error) => {
-          validationErrors[error.path as string] = error.message;
-        });
-
-        return response.status(500).json(validationErrors);
-      }
-      return response.status(500).json('Ocorreu um erro ao buscar esse exam');
+      return handleErrors(err, response, 'Erro ao tentar baixar o exame');
     }
   }
 }

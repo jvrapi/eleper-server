@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { getRepository } from 'typeorm';
 import * as Yup from 'yup';
 
+import handleErrors from '../errors';
 import User from '../models/User';
 import UserToken from '../models/UserToken';
 import UserView from '../views/UserView';
@@ -48,18 +49,7 @@ class UserController {
       }
       return response.status(404).json({ error: 'Usuario não encontrado' });
     } catch (err) {
-      const validationErrors: Record<string, string> = {};
-      if (err instanceof Yup.ValidationError) {
-        err.inner.forEach((error) => {
-          validationErrors[error.path as string] = error.message;
-        });
-
-        return response.status(500).json(validationErrors);
-      }
-
-      return response
-        .status(500)
-        .json({ error: 'Erro ao tentar autenticar o usuário' });
+      return handleErrors(err, response, 'Erro ao tentar autenticar o usuário');
     }
   }
 
@@ -124,18 +114,7 @@ class UserController {
 
       return response.status(201).json(userView.newUser(newUser, userToken.id));
     } catch (err) {
-      const validationErrors: Record<string, string> = {};
-      if (err instanceof Yup.ValidationError) {
-        err.inner.forEach((error) => {
-          validationErrors[error.path as string] = error.message;
-        });
-
-        return response.status(500).json(validationErrors);
-      }
-
-      return response
-        .status(500)
-        .json({ error: 'Erro ao tentar salvar o usuário' });
+      return handleErrors(err, response, 'Erro ao tentar salvar o usuário');
     }
   }
 
@@ -178,16 +157,11 @@ class UserController {
 
       return response.json(userView.details(updateUser));
     } catch (err) {
-      const validationErrors: Record<string, string> = {};
-      if (err instanceof Yup.ValidationError) {
-        err.inner.forEach((error) => {
-          validationErrors[error.path as string] = error.message;
-        });
-        return response.status(500).json(validationErrors);
-      }
-      return response
-        .status(500)
-        .json({ error: 'Erro ao tentar redefinir a senha' });
+      return handleErrors(
+        err,
+        response,
+        'Erro ao tentar redefinir a senha do usuário'
+      );
     }
   }
 }

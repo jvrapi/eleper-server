@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { getRepository } from 'typeorm';
 import * as Yup from 'yup';
 
+import handleErrors from '../errors';
 import Disease from '../models/Disease';
 import { firstLetterUpper } from '../utils/functions';
 class DiseaseController {
@@ -26,16 +27,17 @@ class DiseaseController {
     } catch {
       return response
         .status(500)
-        .json({ error: 'Ops! Ocorreu um erro ao tentar listar as doenças' });
+        .json({ error: 'Ocorreu um erro ao tentar listar as doenças' });
     }
   }
 
   async save(request: Request, response: Response) {
     const { name } = request.body;
     const repository = getRepository(Disease);
-    const schema = Yup.string().required(
-      'Por favor, informe o nome da doença!'
-    );
+    const schema = Yup.object().shape({
+      name: Yup.string().required('Por favor, informe o nome da doença!'),
+    });
+
     try {
       await schema.validate(name, { abortEarly: false });
       const diseaseAlreadyExists = await repository.findOne({
@@ -44,20 +46,17 @@ class DiseaseController {
       if (diseaseAlreadyExists) {
         return response
           .status(409)
-          .json({ error: 'Ops! Essa doença ja consta em nossos registros' });
+          .json({ error: 'Essa doença ja consta em nossos registros' });
       }
       const disease = repository.create({ name: firstLetterUpper(name) });
       await repository.save(disease);
       return response.status(201).json(disease);
     } catch (err) {
-      const validationErrors: Record<string, string> = {};
-      if (err instanceof Yup.ValidationError) {
-        err.inner.forEach((error) => {
-          validationErrors[error.path as string] = error.message;
-        });
-
-        return response.status(500).json(validationErrors);
-      }
+      return handleErrors(
+        err,
+        response,
+        'Ocorreu um erro ao tentar salvar a doença'
+      );
     }
   }
 }

@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { getRepository } from 'typeorm';
 import * as Yup from 'Yup';
 
+import handleErrors from '../errors';
 import UserDisease from '../models/UserDisease';
 import UserDiseaseView from '../views/UserDiseaseView';
 
@@ -18,9 +19,11 @@ class UserDiseaseController {
       });
       return response.json(userDiseaseView.listDiseases(diseases));
     } catch (error) {
-      return response
-        .status(500)
-        .json({ error: 'Erro ao tentar listar as doênças do usuario' });
+      return handleErrors(
+        error,
+        response,
+        'Erro ao listar as doenças do usuário'
+      );
     }
   }
 
@@ -55,16 +58,11 @@ class UserDiseaseController {
       );
       return response.status(201).json(userDiseases);
     } catch (err) {
-      console.log(err);
-      const validationErrors: Record<string, string> = {};
-      if (err instanceof Yup.ValidationError) {
-        err.inner.forEach((error) => {
-          const errorPath = error.path ? error.path : 'error';
-          validationErrors[errorPath] = error.message;
-        });
-
-        return response.status(500).json(validationErrors);
-      }
+      return handleErrors(
+        err,
+        response,
+        'Erro ao salvar as doenças do usuário'
+      );
     }
   }
 }

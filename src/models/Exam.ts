@@ -17,6 +17,9 @@ class Exam {
   @Column('varchar', { name: 'user_id' })
   userId: string;
 
+  @Column('varchar', { name: 'created_at' })
+  createdAt: Date;
+
   constructor() {
     if (!this.id) {
       this.id = uuid();
