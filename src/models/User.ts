@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 
+import Exam from './Exam';
 import UserDisease from './UserDisease';
 import UserToken from './UserToken';
 
@@ -56,6 +57,9 @@ class User {
 
   @OneToMany(() => UserDisease, (userDisease) => userDisease.user)
   userDiseases: UserDisease[];
+
+  @OneToMany(() => Exam, (exam) => exam.user)
+  exams: Exam[];
 }
 
 export default User;

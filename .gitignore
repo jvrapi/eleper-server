@@ -1,8 +1,7 @@
 node_modules
 .env
 dist
-
-
+**/*.pdf
 # Logs
 logs
 .log
