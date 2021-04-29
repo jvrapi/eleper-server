@@ -92,7 +92,7 @@ class ExamController {
     }
   }
 
-  async downloadFile(request: Request, response: Response) {
+  async examFile(request: Request, response: Response) {
     const { id } = request.query;
     const userId = request.userId;
 
@@ -116,9 +116,14 @@ class ExamController {
           .json({ message: 'você não tem acesso a este arquivo' });
       }
 
-      const filePath = path.join(__dirname, '..', '..', 'uploads', exam.path);
-
-      return response.sendFile(filePath);
+      const filePath = path.join(
+        __dirname,
+        '..',
+        '..',
+        'uploads',
+        exam?.path as string
+      );
+      return response.download(filePath);
     } catch (err) {
       return handleErrors(err, response, 'Erro ao tentar baixar o exame');
     }

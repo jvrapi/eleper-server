@@ -11,7 +11,7 @@ const examController = new ExamController();
 
 routes.get('/', examController.list);
 routes.post('/', upload.single('exams'), examController.save);
-routes.get('/downloadFile', examController.downloadFile);
+routes.get('/examFile', examController.examFile);
 routes.get('/details/:id', examController.getById);
 
 export default routes;

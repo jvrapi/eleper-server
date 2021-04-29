@@ -15,13 +15,16 @@ export default async function AuthenticationMiddleware(
   response: Response,
   next: NextFunction
 ) {
-  const { authorization } = request.headers;
+  const authorization = request.headers.authorization
+    ? request.headers.authorization
+    : request.query.authorization;
 
   if (!authorization) {
     return response.sendStatus(401);
   }
 
-  const token = authorization.replace('Bearer', '').trim();
+  let token = authorization as string;
+  token = token.replace('Bearer', '').trim();
   const userRepository = getRepository(User);
 
   try {
