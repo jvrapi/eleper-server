@@ -10,18 +10,22 @@ export class CreateExamTable1619574208182 implements MigrationInterface {
             name: 'id',
             type: 'varchar',
             isPrimary: true,
+            length: '36',
           },
           {
             name: 'name',
             type: 'varchar',
+            length: '70',
           },
           {
             name: 'path',
             type: 'varchar',
+            length: '70',
           },
           {
             name: 'user_id',
             type: 'varchar',
+            length: '36',
           },
           {
             name: 'created_at',

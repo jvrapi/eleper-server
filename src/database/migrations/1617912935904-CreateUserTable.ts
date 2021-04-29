@@ -10,10 +10,12 @@ export class CreateUserTable1617912935904 implements MigrationInterface {
             name: 'id',
             type: 'varchar',
             isPrimary: true,
+            length: '36',
           },
           {
             name: 'name',
             type: 'varchar',
+            length: '70',
           },
           {
             name: 'email',
@@ -30,6 +32,7 @@ export class CreateUserTable1617912935904 implements MigrationInterface {
           {
             name: 'password',
             type: 'varchar',
+            length: '60',
           },
           {
             name: 'birth',
@@ -39,7 +42,7 @@ export class CreateUserTable1617912935904 implements MigrationInterface {
             name: 'code',
             type: 'varchar',
             isNullable: true,
-            length: '11',
+            length: '20',
           },
         ],
       })

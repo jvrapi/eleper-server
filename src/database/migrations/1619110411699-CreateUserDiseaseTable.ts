@@ -10,14 +10,17 @@ export class CreateUserDiseaseTable1619110411699 implements MigrationInterface {
             name: 'id',
             type: 'varchar',
             isPrimary: true,
+            length: '36',
           },
           {
             name: 'user_id',
             type: 'varchar',
+            length: '36',
           },
           {
             name: 'disease_id',
             type: 'varchar',
+            length: '36',
           },
           {
             name: 'diagnosis_date',
@@ -28,6 +31,7 @@ export class CreateUserDiseaseTable1619110411699 implements MigrationInterface {
             name: 'active',
             type: 'tinyint',
             isNullable: true,
+            length: '1',
             default: '1',
           },
         ],

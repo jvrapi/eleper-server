@@ -10,6 +10,7 @@ export class CreateUserTokenTable1617971818635 implements MigrationInterface {
             name: 'id',
             type: 'varchar',
             isPrimary: true,
+            length: '208',
           },
           {
             name: 'created_at',
@@ -19,6 +20,7 @@ export class CreateUserTokenTable1617971818635 implements MigrationInterface {
           {
             name: 'user_id',
             type: 'varchar',
+            length: '36',
           },
         ],
         foreignKeys: [

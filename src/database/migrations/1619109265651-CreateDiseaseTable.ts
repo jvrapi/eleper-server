@@ -10,10 +10,12 @@ export class CreateDiseaseTable1619109265651 implements MigrationInterface {
             name: 'id',
             type: 'varchar',
             isPrimary: true,
+            length: '36',
           },
           {
             name: 'name',
             type: 'varchar',
+            length: '70',
           },
         ],
       })

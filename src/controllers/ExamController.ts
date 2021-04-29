@@ -26,6 +26,36 @@ class ExamController {
       return handleErrors(err, response, 'Erro ao tentar listar os exames');
     }
   }
+  async getById(request: Request, response: Response) {
+    const { id } = request.params;
+    const userId = request.userId;
+
+    const repository = getRepository(Exam);
+
+    const schema = Yup.object().shape({
+      id: Yup.string().uuid('Id informado inválido').required('Informe o id'),
+    });
+
+    try {
+      await schema.validate({ id }, { abortEarly: false });
+
+      const exam = await repository.findOne({ id });
+
+      if (exam?.userId !== userId) {
+        return response
+          .status(401)
+          .json({ warning: 'Você não tem acesso a esse exame' });
+      }
+
+      return response.json(exam);
+    } catch (error) {
+      handleErrors(
+        error,
+        response,
+        'Erro ao tentar pegar as informações do exame'
+      );
+    }
+  }
   async save(request: Request, response: Response) {
     const { name, userId } = request.body;
     const repository = getRepository(Exam);
@@ -44,7 +74,9 @@ class ExamController {
         .uuid('Id informado inválido')
         .required('Informe o ID do usuario para salvar o exame'),
 
-      path: Yup.string().required('Informe o arquivo que deseja salvar'),
+      path: Yup.string()
+        .required('Informe o arquivo que deseja salvar')
+        .max(70, 'Nome muito grande'),
     });
 
     try {
@@ -79,7 +111,7 @@ class ExamController {
 
       /* validates if the exam exists*/
       if (!exam) {
-        return response.json({ message: 'Exame não encontrado' });
+        return response.json({ warning: 'Exame não encontrado' });
       }
 
       // validates if the request user has authorization for file
