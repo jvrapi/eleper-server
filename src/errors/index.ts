@@ -7,7 +7,6 @@ function handleErrors(err: Error, response: Response, errorMessage: string) {
   if (err instanceof Yup.ValidationError) {
     err.inner.forEach((error) => {
       const errorPath = error.path ? error.path : 'error';
-      console.log(error.path);
       validationErrors[errorPath] = error.message;
     });
 
