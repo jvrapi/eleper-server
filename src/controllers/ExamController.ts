@@ -1,10 +1,14 @@
 import { Request, Response } from 'express';
+import fs from 'fs';
 import path from 'path';
 import { getRepository } from 'typeorm';
 import * as Yup from 'yup';
 
 import handleErrors from '../errors';
 import Exam from '../models/Exam';
+import ExamView from '../views/ExamView';
+
+const examView = new ExamView();
 
 class ExamController {
   async list(request: Request, response: Response) {
@@ -47,7 +51,7 @@ class ExamController {
           .json({ warning: 'Você não tem acesso a esse exame' });
       }
 
-      return response.json(exam);
+      return response.json(examView.examDetails(exam));
     } catch (error) {
       handleErrors(
         error,
@@ -56,6 +60,7 @@ class ExamController {
       );
     }
   }
+
   async save(request: Request, response: Response) {
     const { name, userId } = request.body;
     const repository = getRepository(Exam);
@@ -87,6 +92,50 @@ class ExamController {
       await repository.save(exam);
 
       return response.status(201).json(exam);
+    } catch (err) {
+      return handleErrors(err, response, 'Erro ao tentar salvar o exame');
+    }
+  }
+
+  async update(request: Request, response: Response) {
+    const { name, id } = request.body;
+    const requestFile = request.file as Express.Multer.File;
+    const repository = getRepository(Exam);
+    const data = { name, id, path: requestFile.filename };
+
+    const schema = Yup.object().shape({
+      name: Yup.string().required('Informe um nome para o exame'),
+
+      id: Yup.string()
+        .uuid('Id informado inválido')
+        .required('Informe o ID do exame'),
+
+      path: Yup.string()
+        .required('Informe o arquivo que deseja salvar')
+        .max(70, 'Nome muito grande'),
+    });
+
+    try {
+      await schema.validate(data, { abortEarly: false });
+
+      const databaseInfos = await repository.findOne({ id });
+
+      const updateExam = { ...databaseInfos, name, path: requestFile.filename };
+
+      const exam = repository.create(updateExam);
+
+      await repository.save(exam);
+
+      const filePath = path.join(
+        __dirname,
+        '..',
+        '..',
+        'uploads',
+        databaseInfos?.path as string
+      );
+      fs.unlinkSync(filePath);
+
+      return response.json(exam);
     } catch (err) {
       return handleErrors(err, response, 'Erro ao tentar salvar o exame');
     }
