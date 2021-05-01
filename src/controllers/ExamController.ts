@@ -172,7 +172,7 @@ class ExamController {
         'uploads',
         exam?.path as string
       );
-      return response.download(filePath);
+      return response.download(filePath, exam.name + '.pdf');
     } catch (err) {
       return handleErrors(err, response, 'Erro ao tentar baixar o exame');
     }
