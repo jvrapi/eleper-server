@@ -135,7 +135,7 @@ class ExamController {
       );
       fs.unlinkSync(filePath);
 
-      return response.json(exam);
+      return response.json(examView.examDetails(exam));
     } catch (err) {
       return handleErrors(err, response, 'Erro ao tentar salvar o exame');
     }
