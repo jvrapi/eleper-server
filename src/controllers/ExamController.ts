@@ -177,6 +177,27 @@ class ExamController {
       return handleErrors(err, response, 'Erro ao tentar baixar o exame');
     }
   }
+
+  async delete(request: Request, response: Response) {
+    const { id } = request.params;
+    const userId = request.userId;
+    const repository = getRepository(Exam);
+    try {
+      const exam = await repository.findOne({ id });
+      if (!exam) {
+        return response.json({ message: 'Exame não encontrado' });
+      }
+      if (exam.userId !== userId) {
+        return response
+          .status(401)
+          .json({ message: 'Você não tem permissão para excluir esse exame' });
+      }
+      await repository.delete(id);
+      return response.json({ message: 'Exame excluído com sucesso' });
+    } catch (error) {
+      return handleErrors(error, response, 'Erro ao tentar excluir o exame');
+    }
+  }
 }
 
 export default ExamController;
