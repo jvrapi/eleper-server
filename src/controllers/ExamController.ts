@@ -193,6 +193,8 @@ class ExamController {
           .json({ message: 'Você não tem permissão para excluir esse exame' });
       }
       await repository.delete(id);
+      const filePath = path.join(__dirname, '..', '..', 'uploads', exam.path);
+      fs.unlinkSync(filePath);
       return response.json({ message: 'Exame excluído com sucesso' });
     } catch (error) {
       return handleErrors(error, response, 'Erro ao tentar excluir o exame');
