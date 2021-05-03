@@ -63,13 +63,14 @@ class ExamController {
 
   async save(request: Request, response: Response) {
     const { name, userId } = request.body;
+
     const repository = getRepository(Exam);
-    const requestFile = request.file as Express.Multer.File;
+
+    const { filename } = request.file as Express.Multer.File;
 
     const data = {
       name,
       userId,
-      path: requestFile.filename,
     };
 
     const schema = Yup.object().shape({
@@ -78,16 +79,38 @@ class ExamController {
       userId: Yup.string()
         .uuid('Id informado inválido')
         .required('Informe o ID do usuario para salvar o exame'),
-
-      path: Yup.string()
-        .required('Informe o arquivo que deseja salvar')
-        .max(70, 'Nome muito grande'),
     });
+
+    const fileTimestamp = filename.split(/(\d{13})/g);
+
+    const originalFilePath = path.join(
+      __dirname,
+      '..',
+      '..',
+      'uploads',
+      userId,
+      'files',
+      filename
+    );
+
+    const finalFileName = `${fileTimestamp[1]}-${name.trim()}.pdf`;
+
+    const newFilePath = path.join(
+      __dirname,
+      '..',
+      '..',
+      'uploads',
+      userId,
+      'files',
+      finalFileName
+    );
+
+    fs.renameSync(originalFilePath, newFilePath);
 
     try {
       await schema.validate(data, { abortEarly: false });
 
-      const exam = repository.create(data);
+      const exam = repository.create({ ...data, path: finalFileName });
 
       await repository.save(exam);
 
@@ -99,9 +122,10 @@ class ExamController {
 
   async update(request: Request, response: Response) {
     const { name, id } = request.body;
-    const requestFile = request.file as Express.Multer.File;
+    const { filename } = request.file as Express.Multer.File;
     const repository = getRepository(Exam);
-    const data = { name, id, path: requestFile.filename };
+    const data = { name, id, path: filename };
+    const userId = request.userId;
 
     const schema = Yup.object().shape({
       name: Yup.string().required('Informe um nome para o exame'),
@@ -109,10 +133,6 @@ class ExamController {
       id: Yup.string()
         .uuid('Id informado inválido')
         .required('Informe o ID do exame'),
-
-      path: Yup.string()
-        .required('Informe o arquivo que deseja salvar')
-        .max(70, 'Nome muito grande'),
     });
 
     try {
@@ -120,7 +140,43 @@ class ExamController {
 
       const databaseInfos = await repository.findOne({ id });
 
-      const updateExam = { ...databaseInfos, name, path: requestFile.filename };
+      if (!databaseInfos) {
+        return response.status(200).json({ message: 'Exame não encontrado' });
+      }
+
+      if (databaseInfos.userId !== userId) {
+        return response
+          .status(401)
+          .json({ message: 'Você não pode atualizar esse exame' });
+      }
+
+      const fileTimestamp = databaseInfos.path.split(/(\d{13})/g);
+
+      const finalFileName = `${fileTimestamp[1]}-${name.trim()}.pdf`;
+
+      const originalFilePath = path.join(
+        __dirname,
+        '..',
+        '..',
+        'uploads',
+        userId,
+        'files',
+        databaseInfos.path
+      );
+
+      const newFilePath = path.join(
+        __dirname,
+        '..',
+        '..',
+        'uploads',
+        userId,
+        'files',
+        finalFileName
+      );
+
+      fs.renameSync(originalFilePath, newFilePath);
+
+      const updateExam = { ...databaseInfos, name, path: finalFileName };
 
       const exam = repository.create(updateExam);
 
@@ -131,7 +187,9 @@ class ExamController {
         '..',
         '..',
         'uploads',
-        databaseInfos?.path as string
+        userId,
+        'files',
+        filename
       );
       fs.unlinkSync(filePath);
 
@@ -170,6 +228,8 @@ class ExamController {
         '..',
         '..',
         'uploads',
+        userId,
+        'files',
         exam?.path as string
       );
       return response.download(filePath, exam.name + '.pdf');
@@ -193,7 +253,15 @@ class ExamController {
           .json({ message: 'Você não tem permissão para excluir esse exame' });
       }
       await repository.delete(id);
-      const filePath = path.join(__dirname, '..', '..', 'uploads', exam.path);
+      const filePath = path.join(
+        __dirname,
+        '..',
+        '..',
+        'uploads',
+        userId,
+        'files',
+        exam.path
+      );
       fs.unlinkSync(filePath);
       return response.json({ message: 'Exame excluído com sucesso' });
     } catch (error) {
