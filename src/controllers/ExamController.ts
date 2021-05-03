@@ -122,9 +122,9 @@ class ExamController {
 
   async update(request: Request, response: Response) {
     const { name, id } = request.body;
-    const { filename } = request.file as Express.Multer.File;
+    const requestFile = request.file as Express.Multer.File;
     const repository = getRepository(Exam);
-    const data = { name, id, path: filename };
+    const data = { name, id, path: requestFile.filename };
     const userId = request.userId;
 
     const schema = Yup.object().shape({
@@ -150,7 +150,7 @@ class ExamController {
           .json({ message: 'Você não pode atualizar esse exame' });
       }
 
-      const fileTimestamp = databaseInfos.path.split(/(\d{13})/g);
+      const fileTimestamp = requestFile.filename.split(/(\d{13})/g);
 
       const finalFileName = `${fileTimestamp[1]}-${name.trim()}.pdf`;
 
@@ -181,17 +181,6 @@ class ExamController {
       const exam = repository.create(updateExam);
 
       await repository.save(exam);
-
-      const filePath = path.join(
-        __dirname,
-        '..',
-        '..',
-        'uploads',
-        userId,
-        'files',
-        filename
-      );
-      fs.unlinkSync(filePath);
 
       return response.json(examView.examDetails(exam));
     } catch (err) {
