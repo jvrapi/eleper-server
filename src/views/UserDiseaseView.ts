@@ -4,7 +4,16 @@ class UserDiseaseView {
   listDiseases(userDiseases: UserDisease[]) {
     return userDiseases.map((userDisease) => {
       return {
-        ...userDisease,
+        user: {
+          id: userDisease.user.id,
+          name: userDisease.user.name,
+        },
+        disease: {
+          id: userDisease.disease.id,
+          name: userDisease.disease.name,
+        },
+        diagnosisDate: userDisease.diagnosisDate,
+        active: userDisease.active,
       };
     });
   }
