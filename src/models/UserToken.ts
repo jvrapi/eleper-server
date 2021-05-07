@@ -3,7 +3,7 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
-  ManyToOne,
+  OneToOne,
   PrimaryColumn,
 } from 'typeorm';
 
@@ -20,7 +20,7 @@ class UserToken {
   @Column({ name: 'user_id' })
   userId: string;
 
-  @ManyToOne(() => User, (user) => user.userToken)
+  @OneToOne(() => User, (user) => user.userToken)
   @JoinColumn({ name: 'user_id' })
   user: User;
 }

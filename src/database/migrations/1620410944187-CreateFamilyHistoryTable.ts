@@ -1,16 +1,17 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 
-export class CreateExamTable1619574208182 implements MigrationInterface {
+export class CreateFamilyHistoryTable1620410944187
+  implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: 'exam',
+        name: 'family_history',
         columns: [
           {
             name: 'id',
             type: 'varchar',
-            isPrimary: true,
             length: '36',
+            isPrimary: true,
           },
           {
             name: 'user_id',
@@ -18,30 +19,29 @@ export class CreateExamTable1619574208182 implements MigrationInterface {
             length: '36',
           },
           {
-            name: 'name',
+            name: 'disease_id',
             type: 'varchar',
-            length: '100',
+            length: '36',
           },
           {
-            name: 'path',
+            name: 'family_relative',
             type: 'varchar',
-            length: '100',
-          },
-          {
-            name: 'date',
-            type: 'date',
-          },
-          {
-            name: 'created_at',
-            type: 'timestamp',
-            default: 'now()',
+            length: '50',
           },
         ],
         foreignKeys: [
           {
-            name: 'FK_Exam_User',
+            name: 'FK_FamilyHistory_User',
             columnNames: ['user_id'],
             referencedTableName: 'user',
+            referencedColumnNames: ['id'],
+            onUpdate: 'CASCADE',
+            onDelete: 'CASCADE',
+          },
+          {
+            name: 'FK_FamilyHistory_Disease',
+            columnNames: ['disease_id'],
+            referencedTableName: 'disease',
             referencedColumnNames: ['id'],
             onUpdate: 'CASCADE',
             onDelete: 'CASCADE',
@@ -52,6 +52,6 @@ export class CreateExamTable1619574208182 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('exam');
+    await queryRunner.dropTable('family_history');
   }
 }

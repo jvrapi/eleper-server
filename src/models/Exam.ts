@@ -17,6 +17,9 @@ class Exam {
   @Column('varchar', { name: 'user_id' })
   userId: string;
 
+  @Column()
+  date: string;
+
   @Column('varchar', { name: 'created_at' })
   createdAt: Date;
 

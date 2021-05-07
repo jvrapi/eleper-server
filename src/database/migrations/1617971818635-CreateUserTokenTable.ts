@@ -13,14 +13,14 @@ export class CreateUserTokenTable1617971818635 implements MigrationInterface {
             length: '208',
           },
           {
-            name: 'created_at',
-            type: 'timestamp',
-            default: 'now()',
-          },
-          {
             name: 'user_id',
             type: 'varchar',
             length: '36',
+          },
+          {
+            name: 'created_at',
+            type: 'timestamp',
+            default: 'now()',
           },
         ],
         foreignKeys: [

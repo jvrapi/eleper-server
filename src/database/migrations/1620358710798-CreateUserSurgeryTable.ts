@@ -1,16 +1,16 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 
-export class CreateExamTable1619574208182 implements MigrationInterface {
+export class CreateUserSurgeryTable1620358710798 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: 'exam',
+        name: 'user_surgery',
         columns: [
           {
             name: 'id',
             type: 'varchar',
-            isPrimary: true,
             length: '36',
+            isPrimary: true,
           },
           {
             name: 'user_id',
@@ -18,30 +18,39 @@ export class CreateExamTable1619574208182 implements MigrationInterface {
             length: '36',
           },
           {
-            name: 'name',
+            name: 'surgery_id',
             type: 'varchar',
-            length: '100',
-          },
-          {
-            name: 'path',
-            type: 'varchar',
-            length: '100',
+            length: '36',
           },
           {
             name: 'date',
             type: 'date',
           },
           {
-            name: 'created_at',
-            type: 'timestamp',
-            default: 'now()',
+            name: 'location',
+            type: 'varchar',
+            length: '100',
+          },
+          {
+            name: 'after_effects',
+            type: 'varchar',
+            length: '100',
+            isNullable: true,
           },
         ],
         foreignKeys: [
           {
-            name: 'FK_Exam_User',
+            name: 'FK_UserSurgery_User',
             columnNames: ['user_id'],
             referencedTableName: 'user',
+            referencedColumnNames: ['id'],
+            onUpdate: 'CASCADE',
+            onDelete: 'CASCADE',
+          },
+          {
+            name: 'FK_UserSurgery_Surgery',
+            columnNames: ['surgery_id'],
+            referencedTableName: 'surgery',
             referencedColumnNames: ['id'],
             onUpdate: 'CASCADE',
             onDelete: 'CASCADE',
@@ -52,6 +61,6 @@ export class CreateExamTable1619574208182 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('exam');
+    await queryRunner.dropTable('user_surgery');
   }
 }

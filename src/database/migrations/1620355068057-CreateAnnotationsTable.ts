@@ -1,10 +1,10 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 
-export class CreateExamTable1619574208182 implements MigrationInterface {
+export class CreateAnnotationsTable1620355068057 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: 'exam',
+        name: 'annotation',
         columns: [
           {
             name: 'id',
@@ -13,33 +13,38 @@ export class CreateExamTable1619574208182 implements MigrationInterface {
             length: '36',
           },
           {
+            name: 'disease_id',
+            type: 'varchar',
+            length: '36',
+            isNullable: true,
+          },
+          {
             name: 'user_id',
             type: 'varchar',
             length: '36',
-          },
-          {
-            name: 'name',
-            type: 'varchar',
-            length: '100',
-          },
-          {
-            name: 'path',
-            type: 'varchar',
-            length: '100',
-          },
-          {
-            name: 'date',
-            type: 'date',
           },
           {
             name: 'created_at',
             type: 'timestamp',
             default: 'now()',
           },
+          {
+            name: 'description',
+            type: 'varchar',
+            length: '100',
+          },
         ],
         foreignKeys: [
           {
-            name: 'FK_Exam_User',
+            name: 'FK_Annotation_Disease',
+            columnNames: ['disease_id'],
+            referencedTableName: 'disease',
+            referencedColumnNames: ['id'],
+            onUpdate: 'CASCADE',
+            onDelete: 'CASCADE',
+          },
+          {
+            name: 'FK_Annotation_User',
             columnNames: ['user_id'],
             referencedTableName: 'user',
             referencedColumnNames: ['id'],
@@ -52,6 +57,6 @@ export class CreateExamTable1619574208182 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('exam');
+    await queryRunner.dropTable('annotation');
   }
 }
