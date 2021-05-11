@@ -11,5 +11,6 @@ module.exports = {
   migrations: [rootDir + '/database/migrations/*.{js,ts}'],
   cli: {
     migrationsDir: rootDir + '/database/migrations',
+    entitiesDir: rootDir + '/models',
   },
 };

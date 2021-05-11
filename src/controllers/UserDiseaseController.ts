@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { getRepository } from 'typeorm';
-import * as Yup from 'Yup';
+import * as Yup from 'yup';
 
 import handleErrors from '../errors';
 import UserDisease from '../models/UserDisease';

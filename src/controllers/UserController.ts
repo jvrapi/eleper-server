@@ -67,19 +67,20 @@ class UserController {
     const schema = Yup.object().shape({
       name: Yup.string().required('Informe o nome do usuário'),
       cpf: Yup.string().required('Informe o cpf do usuário'),
-      birth: Yup.string().required('Informe a data de nascimento do usuário'),
+      birth: Yup.date().required('Informe a data de nascimento do usuário'),
       email: Yup.string()
         .email('Informe um e-mail válido')
-        .required('Informe o e-mail do usuario'),
+        .required('Informe o e-mail do usuário'),
       password: Yup.string()
         .min(6, 'A senha deve ter no mínimo 6 caracteres')
-        .required('Informe a senha do usuario'),
+        .required('Informe a senha do usuário'),
     });
 
     try {
       await schema.validate(data, {
-        abortEarly: false,
+        abortEarly: false, // o padrão é true
       });
+
       const emailAlreadyExists = await repository.findOne({ where: { email } });
 
       const cpfAlreadyExists = await repository.findOne({ where: { cpf } });
