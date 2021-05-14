@@ -19,7 +19,6 @@ class ExamController {
         .uuid('Id informado iválido')
         .required('Informe o id do usuario'),
     });
-
     try {
       await schema.validate({ id }, { abortEarly: false });
 
@@ -122,7 +121,6 @@ class ExamController {
 
       return response.status(201).json(exam);
     } catch (err) {
-      console.log(err);
       return handleErrors(err, response, 'Erro ao tentar salvar o exame');
     }
   }
@@ -212,7 +210,7 @@ class ExamController {
   }
 
   async examFile(request: Request, response: Response) {
-    const { id } = request.query;
+    const { id } = request.params;
     const userId = request.userId;
 
     const repository = getRepository(Exam);
@@ -244,7 +242,8 @@ class ExamController {
         'files',
         exam?.path as string
       );
-      return response.download(filePath, exam.name + '.pdf');
+
+      return response.status(200).download(filePath, exam.name + '.pdf');
     } catch (err) {
       return handleErrors(err, response, 'Erro ao tentar baixar o exame');
     }

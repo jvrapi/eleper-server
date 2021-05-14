@@ -12,7 +12,7 @@ function handleErrors(err: Error, response: Response, errorMessage: string) {
 
     return response.status(500).json(validationErrors);
   }
-  console.log(err)
+  console.log(err);
   return response.status(500).json({ error: errorMessage });
 }
 

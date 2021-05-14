@@ -3,6 +3,7 @@ import { getRepository } from 'typeorm';
 import * as Yup from 'yup';
 
 import handleErrors from '../errors';
+import Disease from '../models/Disease';
 import UserDisease from '../models/UserDisease';
 import UserDiseaseView from '../views/UserDiseaseView';
 
@@ -11,8 +12,14 @@ const userDiseaseView = new UserDiseaseView();
 class UserDiseaseController {
   async list(request: Request, response: Response) {
     const { userId } = request.params;
+    const userIdToken = request.userId;
     const repository = getRepository(UserDisease);
     try {
+      if (userIdToken !== userId) {
+        return response
+          .status(401)
+          .json({ message: 'Você não tem acesso a essa infomrações' });
+      }
       const diseases = await repository.find({
         where: { userId },
         relations: ['disease', 'user'],
@@ -62,6 +69,40 @@ class UserDiseaseController {
         err,
         response,
         'Erro ao salvar as doenças do usuário'
+      );
+    }
+  }
+
+  async unrecordedDiseases(request: Request, response: Response) {
+    const { id } = request.params;
+    const userId = request.userId;
+    const repository = getRepository(UserDisease);
+    const diseaseRepository = getRepository(Disease);
+    try {
+      if (id !== userId) {
+        return response
+          .status(401)
+          .json({ message: 'Você não tem acesso a essa infomrações' });
+      }
+      const recordedDiseases = await repository
+        .createQueryBuilder('ud')
+        .select('ud.diseaseId as id')
+        .innerJoin('ud.user', 'user')
+        .where(`ud.userId = '${id}' `)
+        .getQuery();
+
+      const unrecordedDiseases = await diseaseRepository
+        .createQueryBuilder('d')
+        .select(['d.id as id', 'd.name as name'])
+        .where(`d.id NOT IN (${recordedDiseases})`)
+        .orderBy('d.name')
+        .getRawMany();
+      return response.send(unrecordedDiseases);
+    } catch (error) {
+      return handleErrors(
+        error,
+        response,
+        'Erro ao listar as doenças do usuário'
       );
     }
   }

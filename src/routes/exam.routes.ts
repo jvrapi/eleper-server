@@ -11,7 +11,7 @@ const examController = new ExamController();
 
 routes.get('/:id', examController.list);
 routes.get('/details/:id', examController.getById);
-routes.get('/examFile', examController.examFile);
+routes.get('/examFile/:id', examController.examFile);
 routes.post('/', upload.single('exam'), examController.save);
 routes.put('/', upload.single('exam'), examController.update);
 routes.delete('/:id', examController.delete);
