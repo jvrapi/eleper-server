@@ -25,7 +25,10 @@ class ExamController {
 
       const exams = await repository.find({
         where: { userId: id },
-        order: { date: 'ASC' }
+        order: {
+          createdAt: 'ASC',
+          name: 'ASC',
+        },
       });
 
       return response.json(exams);
@@ -65,7 +68,7 @@ class ExamController {
   }
 
   async save(request: Request, response: Response) {
-    const { name, userId, date } = request.body;
+    const { name, userId } = request.body;
 
     const repository = getRepository(Exam);
 
@@ -74,7 +77,6 @@ class ExamController {
     const data = {
       name,
       userId,
-      date,
     };
 
     const schema = Yup.object().shape({
@@ -83,9 +85,6 @@ class ExamController {
       userId: Yup.string()
         .uuid('Id informado inválido')
         .required('Informe o ID do usuario para salvar o exame'),
-      date: Yup.date()
-        .max(new Date(), 'Data inválida')
-        .required('Informe a data do exame'),
     });
 
     const fileTimestamp = filename.split(/(\d{13})/g);
@@ -123,16 +122,34 @@ class ExamController {
 
       return response.status(201).json(exam);
     } catch (err) {
+      console.log(err);
       return handleErrors(err, response, 'Erro ao tentar salvar o exame');
     }
   }
 
   async update(request: Request, response: Response) {
     const { name, id } = request.body;
+
     const requestFile = request.file as Express.Multer.File;
+
     const repository = getRepository(Exam);
-    const data = { name, id, path: requestFile.filename };
+
+    const data = { name, id };
+
     const userId = request.userId;
+
+    const userFilesPath = path.join(
+      __dirname,
+      '..',
+      '..',
+      'uploads',
+      userId,
+      'files'
+    );
+
+    let finalFileName;
+    let originalFilePath;
+    let newFilePath;
 
     const schema = Yup.object().shape({
       name: Yup.string().required('Informe um nome para o exame'),
@@ -157,33 +174,32 @@ class ExamController {
           .json({ message: 'Você não pode atualizar esse exame' });
       }
 
-      const fileTimestamp = requestFile.filename.split(/(\d{13})/g);
+      if (requestFile) {
+        const fileTimestamp = requestFile.filename.split(/(\d{13})/g);
 
-      const finalFileName = `${fileTimestamp[1]}-${name.trim()}.pdf`;
+        finalFileName = `${fileTimestamp[1]}-${name.trim()}.pdf`;
 
-      const originalFilePath = path.join(
-        __dirname,
-        '..',
-        '..',
-        'uploads',
-        userId,
-        'files',
-        databaseInfos.path
-      );
+        originalFilePath = path.join(userFilesPath, requestFile.filename);
 
-      const newFilePath = path.join(
-        __dirname,
-        '..',
-        '..',
-        'uploads',
-        userId,
-        'files',
-        finalFileName
-      );
+        newFilePath = path.join(userFilesPath, finalFileName);
 
-      fs.renameSync(originalFilePath, newFilePath);
+        fs.renameSync(originalFilePath, newFilePath);
+        fs.unlinkSync(path.join(userFilesPath, databaseInfos.path));
+      } else {
+        finalFileName = `${Date.now()}-${name.trim()}.pdf`;
 
-      const updateExam = { ...databaseInfos, name, path: finalFileName };
+        originalFilePath = path.join(userFilesPath, databaseInfos.path);
+
+        newFilePath = path.join(userFilesPath, finalFileName);
+
+        fs.renameSync(originalFilePath, newFilePath);
+      }
+
+      const updateExam = {
+        ...databaseInfos,
+        name,
+        path: finalFileName || databaseInfos.path,
+      };
 
       const exam = repository.create(updateExam);
 

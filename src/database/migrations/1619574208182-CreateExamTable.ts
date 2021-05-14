@@ -27,10 +27,7 @@ export class CreateExamTable1619574208182 implements MigrationInterface {
             type: 'varchar',
             length: '100',
           },
-          {
-            name: 'date',
-            type: 'date',
-          },
+
           {
             name: 'created_at',
             type: 'timestamp',
