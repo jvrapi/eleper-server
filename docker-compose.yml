@@ -1,16 +1,37 @@
+
 version: '3'
 services:
+
   mysqlsrv:
+    
     image: mysql:5.7
+    
     container_name: db
-    restart: always
+    
     command: --character-set-server=utf8 --collation-server=utf8_general_ci
+   
     environment:
-       MYSQL_ROOT_PASSWORD: "${BD_PASSWORD}"
-       MYSQL_DATABASE: ${BD_DATABASE}
+      MYSQL_ROOT_PASSWORD: "${BD_PASSWORD}"
+      MYSQL_DATABASE: ${BD_DATABASE}
+
     ports:
-      - ${BD_PORT}:3306
+      - "${BD_PORT}:${BD_PORT}"
+
     volumes:
       - D:/bd-data/MySQL:/var/lib/mysql
+
+  app:
+    
+    container_name: eliper-api
+    
+    restart: always
+
+    build: .
+
+    ports:
+      - "${PORT}:${PORT}"
+      
+    depends_on:
+      - mysqlsrv
 
   

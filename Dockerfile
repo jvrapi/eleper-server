@@ -1,15 +1,15 @@
 FROM node:14
 
-ENV HOME=/home/eliper
+WORKDIR /usr/src/app
 
-WORKDIR ${HOME}/server
-
-COPY package*.json ${HOME}/server
+COPY package*.json ./
 
 RUN npm i
 
-COPY . ${HOME}/server 
+COPY . .
 
-EXPOSE 3333
+RUN npm run build 
 
-CMD ["npm", "dev"]
+EXPOSE 3000
+
+CMD ["npm", "start"]

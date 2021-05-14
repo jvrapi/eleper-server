@@ -9,7 +9,7 @@ const upload = multer(uploadConfig);
 
 const examController = new ExamController();
 
-routes.get('/', examController.list);
+routes.get('/:id', examController.list);
 routes.get('/details/:id', examController.getById);
 routes.get('/examFile', examController.examFile);
 routes.post('/', upload.single('exam'), examController.save);

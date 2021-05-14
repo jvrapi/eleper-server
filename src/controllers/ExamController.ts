@@ -12,7 +12,7 @@ const examView = new ExamView();
 
 class ExamController {
   async list(request: Request, response: Response) {
-    const { id } = request.query;
+    const { id } = request.params;
     const repository = getRepository(Exam);
     const schema = Yup.object().shape({
       id: Yup.string()
@@ -23,7 +23,10 @@ class ExamController {
     try {
       await schema.validate({ id }, { abortEarly: false });
 
-      const exams = await repository.find({ where: { userId: id } });
+      const exams = await repository.find({
+        where: { userId: id },
+        order: { date: 'ASC' }
+      });
 
       return response.json(exams);
     } catch (err) {
@@ -62,7 +65,7 @@ class ExamController {
   }
 
   async save(request: Request, response: Response) {
-    const { name, userId } = request.body;
+    const { name, userId, date } = request.body;
 
     const repository = getRepository(Exam);
 
@@ -71,6 +74,7 @@ class ExamController {
     const data = {
       name,
       userId,
+      date,
     };
 
     const schema = Yup.object().shape({
@@ -79,6 +83,9 @@ class ExamController {
       userId: Yup.string()
         .uuid('Id informado inválido')
         .required('Informe o ID do usuario para salvar o exame'),
+      date: Yup.date()
+        .max(new Date(), 'Data inválida')
+        .required('Informe a data do exame'),
     });
 
     const fileTimestamp = filename.split(/(\d{13})/g);
