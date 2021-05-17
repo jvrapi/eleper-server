@@ -8,5 +8,6 @@ const userDiseaseController = new UserDiseaseController();
 routes.get('/:userId', userDiseaseController.list);
 routes.get('/unrecordedDiseases/:id', userDiseaseController.unrecordedDiseases);
 routes.post('/saveMany', userDiseaseController.saveMany);
-
+routes.delete('/:id', userDiseaseController.delete);
+routes.delete('/', userDiseaseController.deleteMany);
 export default routes;

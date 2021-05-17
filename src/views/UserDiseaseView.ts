@@ -4,6 +4,7 @@ class UserDiseaseView {
   listDiseases(userDiseases: UserDisease[]) {
     return userDiseases.map((userDisease) => {
       return {
+        id: userDisease.id,
         user: {
           id: userDisease.user.id,
           name: userDisease.user.name,

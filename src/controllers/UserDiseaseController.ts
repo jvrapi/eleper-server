@@ -15,15 +15,17 @@ class UserDiseaseController {
     const userIdToken = request.userId;
     const repository = getRepository(UserDisease);
     try {
-      if (userIdToken !== userId) {
-        return response
-          .status(401)
-          .json({ message: 'Você não tem acesso a essa infomrações' });
-      }
       const diseases = await repository.find({
         where: { userId },
         relations: ['disease', 'user'],
       });
+
+      if (userIdToken !== userId) {
+        return response
+          .status(401)
+          .json({ message: 'Você não tem acesso a essa informações' });
+      }
+
       return response.json(userDiseaseView.listDiseases(diseases));
     } catch (error) {
       return handleErrors(
@@ -103,6 +105,75 @@ class UserDiseaseController {
         error,
         response,
         'Erro ao listar as doenças do usuário'
+      );
+    }
+  }
+
+  async delete(request: Request, response: Response) {
+    const { id } = request.params;
+
+    const requestUserId = request.userId;
+
+    const repository = getRepository(UserDisease);
+
+    try {
+      const userDisease = await repository.findOne({
+        where: { id },
+        relations: ['disease'],
+      });
+
+      if (userDisease?.userId !== requestUserId) {
+        return response
+          .status(401)
+          .json({ message: 'Você não excluir esse item' });
+      }
+      const res: Record<string, string> = {};
+
+      await repository.delete(id);
+
+      res[userDisease.disease.name] = 'Doença excluída com sucesso';
+
+      return response.json(res);
+    } catch (error) {
+      return handleErrors(
+        error,
+        response,
+        'Erro ao excluir a doença do usuário'
+      );
+    }
+  }
+  async deleteMany(request: Request, response: Response) {
+    const userDiseases: string[] = request.body;
+    const requestUserId = request.userId;
+    const repository = getRepository(UserDisease);
+    try {
+      const res = await Promise.all(
+        userDiseases.map(async (userDisease) => {
+          const userDiseaseInfo = await repository.findOne({
+            where: { id: userDisease },
+            relations: ['disease'],
+          });
+
+          const res: Record<string, string> = {};
+
+          if (userDiseaseInfo?.userId !== requestUserId) {
+            res[userDiseaseInfo?.disease.name as string] =
+              'Você não pode excluir esse item';
+          } else {
+            await repository.delete(userDisease);
+            res[userDiseaseInfo?.disease.name as string] =
+              'Doença excluída com sucesso';
+          }
+
+          return res;
+        })
+      );
+      return response.json(res);
+    } catch (error) {
+      return handleErrors(
+        error,
+        response,
+        'Erro ao excluir a doença do usuário'
       );
     }
   }
