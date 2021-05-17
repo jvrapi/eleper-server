@@ -119,6 +119,35 @@ class UserDiseaseController {
     }
   }
 
+  async update(request: Request, response: Response) {
+    const { id, diagnosisDate, active } = request.body;
+
+    const repository = getRepository(UserDisease);
+    const userId = request.userId;
+    const data = { id, diagnosisDate: new Date(diagnosisDate), active };
+
+    try {
+      const userDisease = await repository.findOne({ id });
+      if (userDisease?.userId !== userId) {
+        return response
+          .status(401)
+          .json({ message: 'Você não pode atualizar essas informações' });
+      }
+      const userDiseaseUpdated = repository.create(data);
+
+      await repository.save(userDiseaseUpdated);
+      const UserDiseaseResponse = await repository.findOne({
+        where: { id: userDiseaseUpdated.id },
+        relations: ['disease'],
+      });
+      return response.json(
+        userDiseaseView.details(UserDiseaseResponse as UserDisease)
+      );
+    } catch (error) {
+      handleErrors(error, response, 'Erro ao tentar atualizar as informações');
+    }
+  }
+
   async unrecordedDiseases(request: Request, response: Response) {
     const { id } = request.params;
 
