@@ -12,9 +12,18 @@ const userDiseaseView = new UserDiseaseView();
 class UserDiseaseController {
   async list(request: Request, response: Response) {
     const { userId } = request.params;
+
     const userIdToken = request.userId;
+
     const repository = getRepository(UserDisease);
+
+    const schema = Yup.string()
+      .uuid('Id informado inválido')
+      .required('Informe o id');
+
     try {
+      await schema.validate(userId, { abortEarly: false });
+
       const diseases = await repository.find({
         where: { userId },
         relations: ['disease', 'user'],
@@ -32,6 +41,41 @@ class UserDiseaseController {
         error,
         response,
         'Erro ao listar as doenças do usuário'
+      );
+    }
+  }
+
+  async getById(request: Request, response: Response) {
+    const { id } = request.params;
+
+    const userId = request.userId;
+
+    const repository = getRepository(UserDisease);
+
+    const schema = Yup.string()
+      .uuid('Id informado inválido')
+      .required('Informe o id');
+
+    try {
+      await schema.validate(id, { abortEarly: false });
+
+      const userDiseaseData = await repository.findOne({
+        where: { id },
+        relations: ['disease'],
+      });
+
+      if (userDiseaseData?.userId !== userId) {
+        return response
+          .status(401)
+          .json({ message: 'Você não possui acesso a essas informações' });
+      }
+
+      return response.json(userDiseaseView.details(userDiseaseData));
+    } catch (error) {
+      handleErrors(
+        error,
+        response,
+        'Erro ao tentar recuperar as informações da doença do usuário '
       );
     }
   }
@@ -77,9 +121,13 @@ class UserDiseaseController {
 
   async unrecordedDiseases(request: Request, response: Response) {
     const { id } = request.params;
+
     const userId = request.userId;
+
     const repository = getRepository(UserDisease);
+
     const diseaseRepository = getRepository(Disease);
+
     try {
       if (id !== userId) {
         return response
@@ -99,6 +147,7 @@ class UserDiseaseController {
         .where(`d.id NOT IN (${recordedDiseases})`)
         .orderBy('d.name')
         .getRawMany();
+
       return response.send(unrecordedDiseases);
     } catch (error) {
       return handleErrors(
@@ -116,7 +165,13 @@ class UserDiseaseController {
 
     const repository = getRepository(UserDisease);
 
+    const schema = Yup.string()
+      .uuid('Id informado inválido')
+      .required('Informe o id');
+
     try {
+      await schema.validate(id, { abortEarly: false });
+
       const userDisease = await repository.findOne({
         where: { id },
         relations: ['disease'],
@@ -142,11 +197,21 @@ class UserDiseaseController {
       );
     }
   }
+
   async deleteMany(request: Request, response: Response) {
     const userDiseases: string[] = request.body;
+
     const requestUserId = request.userId;
+
     const repository = getRepository(UserDisease);
+
+    const schema = Yup.array()
+      .min(1, "Informe uma lista com os ID's das doenças")
+      .of(Yup.string().uuid('Id informado inválido').required('Informe o id '));
+
     try {
+      await schema.validate(userDiseases, { abortEarly: false });
+
       const res = await Promise.all(
         userDiseases.map(async (userDisease) => {
           const userDiseaseInfo = await repository.findOne({

@@ -18,6 +18,15 @@ class UserDiseaseView {
       };
     });
   }
+
+  details(userDisease: UserDisease) {
+    return {
+      id: userDisease.id,
+      active: userDisease.active,
+      diagnosisDate: userDisease.diagnosisDate,
+      disease: userDisease.disease,
+    };
+  }
 }
 
 export default UserDiseaseView;
