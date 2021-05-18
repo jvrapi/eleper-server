@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import moment from 'moment';
 import { getRepository } from 'typeorm';
 import * as Yup from 'yup';
 
@@ -123,10 +124,27 @@ class UserDiseaseController {
     const { id, diagnosisDate, active } = request.body;
 
     const repository = getRepository(UserDisease);
+
     const userId = request.userId;
+
     const data = { id, diagnosisDate: new Date(diagnosisDate), active };
 
+    const schema = Yup.object().shape({
+      active: Yup.boolean(),
+      diagnosisDate: Yup.string()
+        .nullable()
+        .test('date-validation', 'Data não é valida', (date) => {
+          const dateIsValid = moment(
+            new Date(date as string),
+            'YYYY-MM-DDThh:mm:ssZ',
+            true
+          ).isValid();
+          return dateIsValid;
+        }),
+    });
+
     try {
+      await schema.validate(data, { abortEarly: false });
       const userDisease = await repository.findOne({ id });
       if (userDisease?.userId !== userId) {
         return response
