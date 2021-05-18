@@ -34,9 +34,9 @@ class DiseaseController {
   async save(request: Request, response: Response) {
     const { name } = request.body;
     const repository = getRepository(Disease);
-    const schema = Yup.object().shape({
-      name: Yup.string().required('Por favor, informe o nome da doença!'),
-    });
+    const schema = Yup.string().required(
+      'Por favor, informe o nome da doença!'
+    );
 
     try {
       await schema.validate(name, { abortEarly: false });
