@@ -279,6 +279,54 @@ class ExamController {
       return handleErrors(error, response, 'Erro ao tentar excluir o exame');
     }
   }
+
+  async deleteMany(request: Request, response: Response) {
+    const exams: string[] = request.body;
+    const requestUserId = request.userId;
+    const repository = getRepository(Exam);
+    const schema = Yup.array()
+      .min(1, "Informe uma lista com os ID's das doenças")
+      .of(Yup.string().uuid('Id informado inválido').required('Informe o id '));
+
+    try {
+      await schema.validate(exams, { abortEarly: false });
+      const res = await Promise.all(
+        exams.map(async (exam) => {
+          const examInfo = await repository.findOne({
+            where: { id: exam },
+          });
+
+          const res: Record<string, string> = {};
+
+          if (examInfo?.userId !== requestUserId) {
+            res[examInfo?.name as string] = 'Você não pode excluir esse item';
+          } else {
+            await repository.delete(exam);
+            const filePath = path.join(
+              __dirname,
+              '..',
+              '..',
+              'uploads',
+              requestUserId,
+              'files',
+              examInfo.path
+            );
+            fs.unlinkSync(filePath);
+            res[examInfo?.name as string] = 'Doença excluída com sucesso';
+          }
+
+          return res;
+        })
+      );
+      return response.json(res);
+    } catch (error) {
+      return handleErrors(
+        error,
+        response,
+        'Erro ao excluir os exames do usuário'
+      );
+    }
+  }
 }
 
 export default ExamController;

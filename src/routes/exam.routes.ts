@@ -15,5 +15,6 @@ routes.get('/examFile/:id', examController.examFile);
 routes.post('/', upload.single('exam'), examController.save);
 routes.put('/', upload.single('exam'), examController.update);
 routes.delete('/:id', examController.delete);
+routes.delete('/', examController.deleteMany);
 
 export default routes;
