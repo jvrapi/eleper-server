@@ -130,7 +130,10 @@ class UserDiseaseController {
     const data = { id, diagnosisDate: new Date(diagnosisDate), active };
 
     const schema = Yup.object().shape({
+      id: Yup.string().uuid().required('Informe o id do usuario'),
+
       active: Yup.boolean(),
+
       diagnosisDate: Yup.string()
         .nullable()
         .test('date-validation', 'Data não é valida', (date) => {
@@ -285,7 +288,7 @@ class UserDiseaseController {
       return handleErrors(
         error,
         response,
-        'Erro ao excluir a doença do usuário'
+        'Erro ao excluir as doenças do usuário'
       );
     }
   }

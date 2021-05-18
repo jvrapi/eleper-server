@@ -4,6 +4,7 @@ import AuthenticationMiddleware from '../middleware/Authentication';
 import DiseaseRoutes from './disease.routes';
 import ExamRoutes from './exam.routes';
 import UserDiseaseRoutes from './user.disease.routes';
+import UserMedicineRoutes from './user.medicine.routes';
 import UserRoutes from './user.routes';
 
 const routes = Router();
@@ -11,6 +12,7 @@ const routes = Router();
 routes.use('/disease', DiseaseRoutes);
 routes.use('/exam', AuthenticationMiddleware, ExamRoutes);
 routes.use('/userDisease', AuthenticationMiddleware, UserDiseaseRoutes);
+routes.use('/userMedicine', AuthenticationMiddleware, UserMedicineRoutes);
 routes.use('/user', UserRoutes);
 
 export default routes;

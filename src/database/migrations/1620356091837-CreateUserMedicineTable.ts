@@ -1,10 +1,11 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 
-export class CreateUserDrugTable1620356091837 implements MigrationInterface {
+export class CreateUserMedicineTable1620356091837
+  implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: 'user_drug',
+        name: 'user_medicine',
         columns: [
           {
             name: 'id',
@@ -23,19 +24,20 @@ export class CreateUserDrugTable1620356091837 implements MigrationInterface {
             length: '36',
           },
           {
-            name: 'drug_id',
+            name: 'medicine_id',
             type: 'varchar',
             length: '36',
           },
           {
             name: 'amount',
-            type: 'tinyint',
-            length: '1',
+            type: 'varchar',
+            length: '100',
           },
           {
             name: 'active',
             type: 'tinyint',
             length: '1',
+            default: '1',
           },
           {
             name: 'instruction',
@@ -54,13 +56,13 @@ export class CreateUserDrugTable1620356091837 implements MigrationInterface {
         ],
         foreignKeys: [
           {
-            name: 'FK_UserDrug_User',
+            name: 'FK_UserMedicine_User',
             columnNames: ['user_id'],
             referencedTableName: 'user',
             referencedColumnNames: ['id'],
           },
           {
-            name: 'FK_UserDrug_Disease',
+            name: 'FK_UserMedicine_Disease',
             columnNames: ['disease_id'],
             referencedTableName: 'disease',
             referencedColumnNames: ['id'],
@@ -68,9 +70,9 @@ export class CreateUserDrugTable1620356091837 implements MigrationInterface {
             onDelete: 'CASCADE',
           },
           {
-            name: 'FK_UserDrug_Drug',
-            columnNames: ['drug_id'],
-            referencedTableName: 'drug',
+            name: 'FK_UserMedicine_Medicine',
+            columnNames: ['medicine_id'],
+            referencedTableName: 'medicine',
             referencedColumnNames: ['id'],
             onUpdate: 'CASCADE',
             onDelete: 'CASCADE',
@@ -81,6 +83,6 @@ export class CreateUserDrugTable1620356091837 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('user_drug');
+    await queryRunner.dropTable('user_medicine');
   }
 }

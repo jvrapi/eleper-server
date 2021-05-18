@@ -2,10 +2,11 @@ import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 
 import Disease from './Disease';
+import Medicine from './Medicine';
 import User from './User';
 
-@Entity({ name: 'user_disease' })
-class UserDisease {
+@Entity({ name: 'user_medicine' })
+class UserMedicine {
   @PrimaryColumn()
   id: string;
 
@@ -15,11 +16,23 @@ class UserDisease {
   @Column('varchar', { name: 'disease_id' })
   readonly diseaseId: string;
 
-  @Column('date', { name: 'diagnosis_date', nullable: true })
-  diagnosisDate: Date | null;
+  @Column('varchar', { name: 'medicine_id' })
+  readonly medicineId: string;
 
   @Column('tinyint', { nullable: true, default: () => '1' })
   active: boolean;
+
+  @Column()
+  amount: string;
+
+  @Column()
+  instruction: string;
+
+  @Column('date', { name: 'begin_date' })
+  beginDate: Date;
+
+  @Column('date', { name: 'end_date', nullable: true })
+  endDate: Date | null;
 
   @ManyToOne(() => User, (user) => user.userDiseases)
   @JoinColumn({ name: 'user_id' })
@@ -29,6 +42,10 @@ class UserDisease {
   @JoinColumn({ name: 'disease_id' })
   disease: Disease;
 
+  @ManyToOne(() => Medicine, (medicine) => medicine.userMedicines)
+  @JoinColumn({ name: 'medicine_id' })
+  medicine: Medicine;
+
   constructor() {
     if (!this.id) {
       this.id = uuid();
@@ -36,4 +53,4 @@ class UserDisease {
   }
 }
 
-export default UserDisease;
+export default UserMedicine;
