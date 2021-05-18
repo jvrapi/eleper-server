@@ -15,3 +15,8 @@ export function DateTimeToBrDate(date: string | null) {
   }
 }
 
+export function stringFormatter(string: string) {
+  return string
+    ? string.toLowerCase().replace(/(?:^|\s)\S/g, (l) => l.toUpperCase())
+    : '';
+}

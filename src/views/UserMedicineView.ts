@@ -13,6 +13,10 @@ class UserMedicineView {
         id: userMedicine.medicine.id,
         name: userMedicine.medicine.name,
       },
+      disease: {
+        id: userMedicine.disease.id,
+        name: userMedicine.disease.name,
+      },
     }));
   }
 

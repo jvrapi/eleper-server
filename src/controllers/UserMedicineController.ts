@@ -6,6 +6,7 @@ import * as Yup from 'yup';
 import handleErrors from '../errors';
 import Medicine from '../models/Medicine';
 import UserMedicine from '../models/UserMedicine';
+import { stringFormatter } from '../utils/functions';
 import UserMedicineView from '../views/UserMedicineView';
 
 const userMedicineView = new UserMedicineView();
@@ -33,7 +34,7 @@ class UserMedicineController {
 
       const medicines = await repository.find({
         where: { userId: id },
-        relations: ['medicine'],
+        relations: ['medicine', 'disease'],
       });
 
       return response.json(userMedicineView.list(medicines));
@@ -140,7 +141,7 @@ class UserMedicineController {
 
           if (!medicineAlreadyExists) {
             saveMedicine = medicineRepository.create({
-              name: userMedicine.medicine.name,
+              name: stringFormatter(userMedicine.medicine.name),
             });
 
             await medicineRepository.save(saveMedicine);
