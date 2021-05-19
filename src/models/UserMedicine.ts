@@ -19,9 +19,6 @@ class UserMedicine {
   @Column('varchar', { name: 'medicine_id' })
   readonly medicineId: string;
 
-  @Column('tinyint', { nullable: true, default: () => '1' })
-  active: boolean;
-
   @Column()
   amount: string;
 

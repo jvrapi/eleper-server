@@ -33,12 +33,7 @@ export class CreateUserMedicineTable1620356091837
             type: 'varchar',
             length: '100',
           },
-          {
-            name: 'active',
-            type: 'tinyint',
-            length: '1',
-            default: '1',
-          },
+
           {
             name: 'instruction',
             type: 'varchar',

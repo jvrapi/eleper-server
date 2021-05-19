@@ -96,10 +96,6 @@ class UserMedicineController {
             name: Yup.string().required('Informe o nome da medicação'),
           }),
 
-          active: Yup.boolean().required(
-            'Informe se ainda esta tomando esse medicamento'
-          ),
-
           amount: Yup.string().required('Informe a quantidade tomada'),
 
           instruction: Yup.string().required(
@@ -153,10 +149,11 @@ class UserMedicineController {
             userId: userMedicine.userId,
             diseaseId: userMedicine.diseaseId,
             medicineId: saveMedicine.id,
-            active: userMedicine.active,
             amount: userMedicine.amount,
-            beginDate: userMedicine.beginDate,
-            endDate: userMedicine.endDate,
+            beginDate: new Date(userMedicine.beginDate),
+            endDate: userMedicine.endDate
+              ? new Date(userMedicine.endDate)
+              : null,
             instruction: userMedicine.instruction,
           };
 
