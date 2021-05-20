@@ -1,4 +1,11 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryColumn,
+} from 'typeorm';
 import { v4 as uuid } from 'uuid';
 
 import User from './User';
@@ -17,10 +24,11 @@ class Exam {
   @Column('varchar', { name: 'user_id' })
   userId: string;
 
-  @CreateDateColumn({ name: 'created_at', default: () => "CURRENT_TIMESTAMP(6)" })
+  @CreateDateColumn({
+    name: 'created_at',
+    default: () => 'CURRENT_TIMESTAMP(6)',
+  })
   createdAt: Date;
-
-
 
   constructor() {
     if (!this.id) {

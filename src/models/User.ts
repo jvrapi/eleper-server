@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 
+import Annotation from './Annotation';
 import Exam from './Exam';
 import UserDisease from './UserDisease';
 import UserToken from './UserToken';
@@ -54,6 +55,9 @@ class User {
 
   @OneToMany(() => UserDisease, (userDisease) => userDisease.user)
   userDiseases: UserDisease[];
+
+  @OneToMany(() => Annotation, (annotation) => annotation.user)
+  annotations: Annotation[];
 
   @OneToMany(() => Exam, (exam) => exam.user)
   exams: Exam[];
