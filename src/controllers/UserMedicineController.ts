@@ -60,6 +60,7 @@ class UserMedicineController {
       await schema.validate(id, { abortEarly: false });
       const userMedicine = await repository.findOne({
         where: { id },
+        relations: ['medicine', 'disease'],
       });
 
       if (userMedicine?.userId !== requestUserId) {
@@ -173,7 +174,6 @@ class UserMedicineController {
   async update(request: Request, response: Response) {
     const {
       id,
-      active,
       amount,
       instruction,
       beginDate,
@@ -197,8 +197,6 @@ class UserMedicineController {
       diseaseId: Yup.string().uuid().required('Informe o id da doença'),
 
       medicineId: Yup.string().uuid().required('Informe o id do medicamento'),
-
-      active: Yup.boolean().required('Informe se a doença esta ativa ou não'),
 
       amount: Yup.string().required('Informe a quantidade que você toma'),
 
@@ -232,11 +230,10 @@ class UserMedicineController {
 
     const data = {
       id,
-      active,
       amount,
       instruction,
-      beginDate,
-      endDate,
+      beginDate: new Date(beginDate),
+      endDate: endDate ? new Date(endDate) : null,
       userId,
       diseaseId,
       medicineId,
@@ -254,7 +251,14 @@ class UserMedicineController {
 
       await repository.save(userMedicine);
 
-      return response.json(userMedicine);
+      const userMedicineResponse = await repository.findOne({
+        where: { id: userMedicine.id },
+        relations: ['medicine', 'disease'],
+      });
+
+      return response.json(
+        userMedicineView.details(userMedicineResponse as UserMedicine)
+      );
     } catch (error) {
       handleErrors(error, response, 'Erro ao atualizar os medicamentos');
     }
