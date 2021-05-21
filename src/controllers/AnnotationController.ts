@@ -4,6 +4,9 @@ import * as Yup from 'yup';
 
 import handleErrors from '../errors';
 import Annotation from '../models/Annotation';
+import AnnotationView from '../views/AnnotationView';
+
+const annotationView = new AnnotationView();
 
 class AnnotationController {
   async list(request: Request, response: Response) {
@@ -38,14 +41,17 @@ class AnnotationController {
     try {
       await schema.validate(id, { abortEarly: false });
 
-      const annotation = await repository.findOne({ where: { id } });
+      const annotation = await repository.findOne({
+        where: { id },
+        relations: ['disease'],
+      });
       if (annotation?.userId !== requestUserId) {
         return response
           .status(401)
           .json({ message: 'Você não possui acesso a essas informações' });
       }
 
-      return response.json(annotation);
+      return response.json(annotationView.details(annotation));
     } catch (error) {
       handleErrors(
         error,
@@ -123,7 +129,13 @@ class AnnotationController {
       }
       const annotation = repository.create(data);
       await repository.save(annotation);
-      return response.status(201).json(annotation);
+      const annotationResponse = await repository.findOne({
+        where: { id: annotation.id },
+        relations: ['disease'],
+      });
+      return response.json(
+        annotationView.details(annotationResponse as Annotation)
+      );
     } catch (error) {
       handleErrors(error, response, 'Erro ao salvar a anotação');
     }
