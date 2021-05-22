@@ -107,7 +107,7 @@ class UserMedicineController {
             .required('Informe a data em que começou a tomar esse medicamento')
             .test('date-validation', 'Data não é valida', (date) => {
               const dateIsValid = moment(
-                new Date(date as string),
+                moment(date).toDate(),
                 'YYYY-MM-DDThh:mm:ssZ',
                 true
               ).isValid();
@@ -117,12 +117,15 @@ class UserMedicineController {
           endDate: Yup.string()
             .nullable()
             .test('date-validation', 'Data não é valida', (date) => {
-              const dateIsValid = moment(
-                new Date(date as string),
-                'YYYY-MM-DDThh:mm:ssZ',
-                true
-              ).isValid();
-              return dateIsValid;
+              if (date) {
+                const dateIsValid = moment(
+                  moment(date).toDate(),
+                  'YYYY-MM-DDThh:mm:ssZ',
+                  true
+                ).isValid();
+                return dateIsValid;
+              }
+              return true;
             }),
         })
       );
@@ -151,9 +154,9 @@ class UserMedicineController {
             diseaseId: userMedicine.diseaseId,
             medicineId: saveMedicine.id,
             amount: userMedicine.amount,
-            beginDate: new Date(userMedicine.beginDate),
+            beginDate: moment(userMedicine.beginDate).toDate(),
             endDate: userMedicine.endDate
-              ? new Date(userMedicine.endDate)
+              ? moment(userMedicine.endDate).toDate()
               : null,
             instruction: userMedicine.instruction,
           };
@@ -232,8 +235,8 @@ class UserMedicineController {
       id,
       amount,
       instruction,
-      beginDate: new Date(beginDate),
-      endDate: endDate ? new Date(endDate) : null,
+      beginDate: moment(beginDate).toDate(),
+      endDate: endDate ? moment(endDate).toDate() : null,
       userId,
       diseaseId,
       medicineId,

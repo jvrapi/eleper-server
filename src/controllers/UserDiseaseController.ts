@@ -93,16 +93,18 @@ class UserDiseaseController {
           diseaseId: Yup.string()
             .uuid('Id informado inválido')
             .required('Informe o id da doença'),
+
           userId: Yup.string()
             .uuid('Id informado inválido')
             .required('Informe o id do usuário'),
+
           diagnosisDate: Yup.string().test(
             'date-validation',
             'Data não é valida',
             (date) => {
               if (date) {
                 const dateIsValid = moment(
-                  new Date(date as string),
+                  moment(date).toDate(),
                   'YYYY-MM-DDThh:mm:ssZ',
                   true
                 ).isValid();
@@ -119,6 +121,9 @@ class UserDiseaseController {
       await schema.validate(diseases, { abortEarly: false });
       const userDiseases = await Promise.all(
         diseases.map(async (userDisease) => {
+          userDisease.diagnosisDate = moment(
+            userDisease.diagnosisDate
+          ).toDate();
           const saveDisease = repository.create(userDisease);
           await repository.save(saveDisease);
           return saveDisease;
@@ -141,20 +146,24 @@ class UserDiseaseController {
 
     const userId = request.userId;
 
-    const data = { id, diagnosisDate: new Date(diagnosisDate), active };
+    const data = {
+      id,
+      diagnosisDate: moment(diagnosisDate).toDate(),
+      active,
+    };
 
     const schema = Yup.object().shape({
-      id: Yup.string().uuid().required('Informe o id do usuario'),
+      id: Yup.string().uuid().required('Informe o id'),
 
       active: Yup.boolean(),
 
-      diagnosisDate: Yup.string().test(
+      diagnosisDate: Yup.date().test(
         'date-validation',
         'Data não é valida',
         (date) => {
           if (date) {
             const dateIsValid = moment(
-              new Date(date as string),
+              date,
               'YYYY-MM-DDThh:mm:ssZ',
               true
             ).isValid();
