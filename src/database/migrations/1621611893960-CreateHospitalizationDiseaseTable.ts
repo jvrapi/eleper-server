@@ -1,45 +1,38 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 
-export class CreateFamilyHistoryTable1620410944187
+export class CreateHospitalizationDiseaseTable1621611893960
   implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: 'family_history',
+        name: 'hospitalization_disease',
         columns: [
           {
-            name: 'id',
+            name: 'hospitalization_id',
             type: 'varchar',
             length: '36',
             isPrimary: true,
           },
-          {
-            name: 'user_id',
-            type: 'varchar',
-            length: '36',
-          },
+
           {
             name: 'disease_id',
             type: 'varchar',
             length: '36',
-          },
-          {
-            name: 'family_relative',
-            type: 'varchar',
-            length: '50',
+            isPrimary: true,
           },
         ],
         foreignKeys: [
           {
-            name: 'FK_FamilyHistory_User',
-            columnNames: ['user_id'],
-            referencedTableName: 'user',
+            name: 'FK_HospitalizationDisease_Hospitalization',
+            columnNames: ['hospitalization_id'],
+            referencedTableName: 'hospitalization',
             referencedColumnNames: ['id'],
             onUpdate: 'CASCADE',
             onDelete: 'CASCADE',
           },
+
           {
-            name: 'FK_FamilyHistory_Disease',
+            name: 'FK_HospitalizationDisease_Disease',
             columnNames: ['disease_id'],
             referencedTableName: 'disease',
             referencedColumnNames: ['id'],
@@ -52,6 +45,6 @@ export class CreateFamilyHistoryTable1620410944187
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('family_history');
+    await queryRunner.dropTable('hospitalization_disease');
   }
 }

@@ -96,7 +96,21 @@ class UserDiseaseController {
           userId: Yup.string()
             .uuid('Id informado inválido')
             .required('Informe o id do usuário'),
-          diagnosisDate: Yup.date(),
+          diagnosisDate: Yup.string().test(
+            'date-validation',
+            'Data não é valida',
+            (date) => {
+              if (date) {
+                const dateIsValid = moment(
+                  new Date(date as string),
+                  'YYYY-MM-DDThh:mm:ssZ',
+                  true
+                ).isValid();
+                return dateIsValid;
+              }
+              return true;
+            }
+          ),
           active: Yup.boolean(),
         })
       );
@@ -134,16 +148,21 @@ class UserDiseaseController {
 
       active: Yup.boolean(),
 
-      diagnosisDate: Yup.string()
-        .nullable()
-        .test('date-validation', 'Data não é valida', (date) => {
-          const dateIsValid = moment(
-            new Date(date as string),
-            'YYYY-MM-DDThh:mm:ssZ',
-            true
-          ).isValid();
-          return dateIsValid;
-        }),
+      diagnosisDate: Yup.string().test(
+        'date-validation',
+        'Data não é valida',
+        (date) => {
+          if (date) {
+            const dateIsValid = moment(
+              new Date(date as string),
+              'YYYY-MM-DDThh:mm:ssZ',
+              true
+            ).isValid();
+            return dateIsValid;
+          }
+          return true;
+        }
+      ),
     });
 
     try {

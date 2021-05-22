@@ -161,8 +161,6 @@ class AnnotationController {
             where: { id: annotationId },
           });
 
-          console.log(annotationInfo);
-
           const res: Record<string, string> = {};
 
           if (annotationInfo?.userId !== requestUserId) {

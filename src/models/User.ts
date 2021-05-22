@@ -12,6 +12,7 @@ import { v4 as uuid } from 'uuid';
 
 import Annotation from './Annotation';
 import Exam from './Exam';
+import Hospitalization from './Hospitalization';
 import UserDisease from './UserDisease';
 import UserToken from './UserToken';
 
@@ -61,6 +62,9 @@ class User {
 
   @OneToMany(() => Exam, (exam) => exam.user)
   exams: Exam[];
+
+  @OneToMany(() => Hospitalization, (hospitalization) => hospitalization.user)
+  hospitalizations: Hospitalization[];
 }
 
 export default User;

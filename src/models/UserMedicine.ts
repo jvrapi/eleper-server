@@ -8,7 +8,7 @@ import User from './User';
 @Entity({ name: 'user_medicine' })
 class UserMedicine {
   @PrimaryColumn()
-  id: string;
+  readonly id: string;
 
   @Column('varchar', { name: 'user_id' })
   readonly userId: string;
