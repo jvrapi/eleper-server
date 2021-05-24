@@ -26,7 +26,9 @@ class UserSurgery {
 	@JoinColumn({ name: 'user_id' })
 	user: User;
 
-	@ManyToOne(() => Surgery, (surgery) => surgery.userSurgeries)
+	@ManyToOne(() => Surgery, (surgery) => surgery.userSurgeries, {
+		cascade: true,
+	})
 	@JoinColumn({ name: 'surgery_id' })
 	surgery: Surgery;
 

@@ -4,7 +4,6 @@ import { getRepository } from 'typeorm';
 import * as Yup from 'yup';
 
 import handleErrors from '../errors';
-import Disease from '../models/Disease';
 import Hospitalization from '../models/Hospitalization';
 import Surgery from '../models/Surgery';
 import UserSurgery from '../models/UserSurgery';
@@ -25,7 +24,10 @@ interface Save extends DefaultFields {
 
 interface Update extends DefaultFields {
 	id: string;
-	surgeryId: string;
+	surgery: {
+		id: string;
+		name: string;
+	};
 }
 
 class UserSurgeryController {
@@ -71,6 +73,7 @@ class UserSurgeryController {
 			await schema.validate(id, { abortEarly: false });
 			const userSurgery = await repository.findOne({
 				where: { id },
+				relations: ['surgery', 'hospitalization'],
 			});
 
 			if (userSurgery?.userId !== requestUserId) {
@@ -79,7 +82,7 @@ class UserSurgeryController {
 					.json({ message: 'Você não possui acesso a essas informações' });
 			}
 
-			return response.json(userSurgery);
+			return response.json(userSurgeryView.details(userSurgery));
 		} catch (error) {
 			handleErrors(error, response, 'Erro ao tentar listar as informações');
 		}
@@ -195,7 +198,7 @@ class UserSurgeryController {
 			id,
 			userId,
 			hospitalization,
-			surgeryId,
+			surgery,
 			afterEffects,
 		}: Update = request.body;
 
@@ -210,9 +213,12 @@ class UserSurgeryController {
 				.uuid('Id informado inválido')
 				.required('Informe o id '),
 
-			surgeryId: Yup.string()
-				.uuid('Id informado inválido')
-				.required('Informe o id '),
+			surgery: Yup.object().shape({
+				id: Yup.string()
+					.uuid('Id informado inválido')
+					.required('Informe o id '),
+				name: Yup.string().required('informe o nome da cirurgia realizada'),
+			}),
 
 			hospitalization: Yup.object().shape({
 				entranceDate: Yup.string()
@@ -249,7 +255,7 @@ class UserSurgeryController {
 			afterEffects: Yup.string().nullable(),
 		});
 
-		const data = { id, userId, hospitalization, surgeryId, afterEffects };
+		const data = { id, userId, hospitalization, surgery, afterEffects };
 
 		try {
 			await schema.validate(data, { abortEarly: false });
@@ -275,14 +281,22 @@ class UserSurgeryController {
 				id,
 				userId,
 				hospitalizationId: hospitalization.id,
-				surgeryId,
+				surgery,
 				afterEffects,
 			};
 
 			const userSurgery = repository.create(userSurgeryData);
+
 			await repository.save(userSurgery);
 
-			return response.json(userSurgery);
+			const userSurgeryResponse = await repository.findOne({
+				where: { id: userSurgery.id },
+				relations: ['surgery', 'hospitalization'],
+			});
+
+			return response.json(
+				userSurgeryView.details(userSurgeryResponse as UserSurgery)
+			);
 		} catch (error) {
 			handleErrors(error, response, 'Erro ao atualizar a cirurgia');
 		}
