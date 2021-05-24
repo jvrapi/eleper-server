@@ -148,7 +148,7 @@ class UserDiseaseController {
 
 		const data = {
 			id,
-			diagnosisDate: moment(diagnosisDate).toDate(),
+			diagnosisDate,
 			active,
 		};
 
@@ -182,6 +182,9 @@ class UserDiseaseController {
 					.status(401)
 					.json({ message: 'Você não pode atualizar essas informações' });
 			}
+
+			data.diagnosisDate = moment(data.diagnosisDate).toDate();
+
 			const userDiseaseUpdated = repository.create(data);
 
 			await repository.save(userDiseaseUpdated);

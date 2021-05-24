@@ -235,8 +235,8 @@ class UserMedicineController {
 			id,
 			amount,
 			instruction,
-			beginDate: moment(beginDate).toDate(),
-			endDate: endDate ? moment(endDate).toDate() : null,
+			beginDate,
+			endDate,
 			userId,
 			diseaseId,
 			medicineId,
@@ -249,6 +249,9 @@ class UserMedicineController {
 					.status(401)
 					.json({ message: 'Você não pode atualizar esses dados' });
 			}
+
+			data.beginDate = moment(beginDate).toDate();
+			data.endDate = moment(endDate).toDate();
 
 			const userMedicine = repository.create(data);
 

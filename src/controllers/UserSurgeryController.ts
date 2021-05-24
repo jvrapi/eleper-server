@@ -109,8 +109,7 @@ class UserSurgeryController {
 					.test('date-validation', 'Data não é valida', (date) => {
 						const dateIsValid = moment(
 							moment(date).toDate(),
-							'YYYY-MM-DDThh:mm:ssZ',
-							true
+							'YYYY-MM-DDThh:mm:ssZ'
 						).isValid();
 
 						return dateIsValid;
@@ -145,6 +144,13 @@ class UserSurgeryController {
 			await schema.validate(data, { abortEarly: false });
 
 			data.hospitalization.diseases = [];
+			data.hospitalization.entranceDate = moment(
+				data.hospitalization.entranceDate
+			).toDate();
+
+			data.hospitalization.exitDate = data.hospitalization.exitDate
+				? moment(data.hospitalization.exitDate).toDate()
+				: null;
 			const hospitalization = hospitalizationRepository.create({
 				...data.hospitalization,
 				userId,
@@ -197,8 +203,6 @@ class UserSurgeryController {
 
 		const hospitalizationRepository = getRepository(Hospitalization);
 
-		const diseaseRepository = getRepository(Disease);
-
 		const schema = Yup.object().shape({
 			id: Yup.string().uuid('Id informado inválido').required('Informe o id '),
 
@@ -249,11 +253,16 @@ class UserSurgeryController {
 
 		try {
 			await schema.validate(data, { abortEarly: false });
-			const diseasesFound = await diseaseRepository.findByIds(
-				data.hospitalization.diseases
-			);
 
-			data.hospitalization.diseases = diseasesFound;
+			data.hospitalization.diseases = [];
+
+			data.hospitalization.entranceDate = moment(
+				data.hospitalization.entranceDate
+			).toDate();
+
+			data.hospitalization.exitDate = data.hospitalization.exitDate
+				? moment(data.hospitalization.exitDate).toDate()
+				: null;
 
 			const hospitalization = hospitalizationRepository.create({
 				...data.hospitalization,

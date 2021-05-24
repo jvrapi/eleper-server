@@ -91,8 +91,8 @@ class HospitalizationController {
 
 		const data = {
 			userId,
-			entranceDate: moment(entranceDate).toDate(),
-			exitDate: exitDate ? moment(exitDate).toDate() : null,
+			entranceDate,
+			exitDate,
 			location,
 			reason,
 			diseases,
@@ -147,12 +147,16 @@ class HospitalizationController {
 
 			data.diseases = diseasesFound;
 
+			data.entranceDate = moment(data.entranceDate).toDate();
+			data.exitDate = data.exitDate ? moment(data.entranceDate).toDate() : null;
+
 			const hospitalization = repository.create(data);
 
 			await repository.save(hospitalization);
 
 			return response.status(201).json(hospitalization);
 		} catch (error) {
+			console.log(error);
 			handleErrors(error, response, 'Erro ao tentar salvar as informações');
 		}
 	}
