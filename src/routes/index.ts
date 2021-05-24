@@ -8,6 +8,7 @@ import HospitalizationRoutes from './hospitalization.routes';
 import UserDiseaseRoutes from './user.disease.routes';
 import UserMedicineRoutes from './user.medicine.routes';
 import UserRoutes from './user.routes';
+import UserSurgeryRoutes from './user.surgery.routes';
 
 const routes = Router();
 
@@ -16,6 +17,7 @@ routes.use('/user', UserRoutes);
 routes.use('/exam', AuthenticationMiddleware, ExamRoutes);
 routes.use('/userDisease', AuthenticationMiddleware, UserDiseaseRoutes);
 routes.use('/userMedicine', AuthenticationMiddleware, UserMedicineRoutes);
+routes.use('/userSurgery', AuthenticationMiddleware, UserSurgeryRoutes);
 routes.use('/annotation', AuthenticationMiddleware, AnnotationsRoutes);
 routes.use('/hospitalization', AuthenticationMiddleware, HospitalizationRoutes);
 export default routes;

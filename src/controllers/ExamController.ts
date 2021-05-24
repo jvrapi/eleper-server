@@ -11,322 +11,322 @@ import ExamView from '../views/ExamView';
 const examView = new ExamView();
 
 class ExamController {
-  async list(request: Request, response: Response) {
-    const { id } = request.params;
-    const repository = getRepository(Exam);
-    const schema = Yup.object().shape({
-      id: Yup.string()
-        .uuid('Id informado iválido')
-        .required('Informe o id do usuario'),
-    });
-    try {
-      await schema.validate({ id }, { abortEarly: false });
+	async list(request: Request, response: Response) {
+		const { id } = request.params;
+		const repository = getRepository(Exam);
+		const schema = Yup.object().shape({
+			id: Yup.string()
+				.uuid('Id informado iválido')
+				.required('Informe o id do usuario'),
+		});
+		try {
+			await schema.validate({ id }, { abortEarly: false });
 
-      const exams = await repository.find({
-        where: { userId: id },
-        order: {
-          createdAt: 'ASC',
-          name: 'ASC',
-        },
-      });
+			const exams = await repository.find({
+				where: { userId: id },
+				order: {
+					createdAt: 'ASC',
+					name: 'ASC',
+				},
+			});
 
-      return response.json(exams);
-    } catch (err) {
-      return handleErrors(err, response, 'Erro ao tentar listar os exames');
-    }
-  }
-  async getById(request: Request, response: Response) {
-    const { id } = request.params;
-    const userId = request.userId;
+			return response.json(exams);
+		} catch (err) {
+			return handleErrors(err, response, 'Erro ao tentar listar os exames');
+		}
+	}
+	async getById(request: Request, response: Response) {
+		const { id } = request.params;
+		const userId = request.userId;
 
-    const repository = getRepository(Exam);
+		const repository = getRepository(Exam);
 
-    const schema = Yup.object().shape({
-      id: Yup.string().uuid('Id informado inválido').required('Informe o id'),
-    });
+		const schema = Yup.object().shape({
+			id: Yup.string().uuid('Id informado inválido').required('Informe o id'),
+		});
 
-    try {
-      await schema.validate({ id }, { abortEarly: false });
+		try {
+			await schema.validate({ id }, { abortEarly: false });
 
-      const exam = await repository.findOne({ id });
+			const exam = await repository.findOne({ id });
 
-      if (exam?.userId !== userId) {
-        return response
-          .status(401)
-          .json({ warning: 'Você não tem acesso a esse exame' });
-      }
+			if (exam?.userId !== userId) {
+				return response
+					.status(401)
+					.json({ warning: 'Você não tem acesso a esse exame' });
+			}
 
-      return response.json(examView.examDetails(exam));
-    } catch (error) {
-      handleErrors(
-        error,
-        response,
-        'Erro ao tentar pegar as informações do exame'
-      );
-    }
-  }
+			return response.json(examView.examDetails(exam));
+		} catch (error) {
+			handleErrors(
+				error,
+				response,
+				'Erro ao tentar pegar as informações do exame'
+			);
+		}
+	}
 
-  async save(request: Request, response: Response) {
-    const { name, userId } = request.body;
+	async save(request: Request, response: Response) {
+		const { name, userId } = request.body;
 
-    const repository = getRepository(Exam);
+		const repository = getRepository(Exam);
 
-    const { filename } = request.file as Express.Multer.File;
+		const { filename } = request.file as Express.Multer.File;
 
-    const data = {
-      name,
-      userId,
-    };
+		const data = {
+			name,
+			userId,
+		};
 
-    const schema = Yup.object().shape({
-      name: Yup.string().required('Informe um nome para o exame'),
+		const schema = Yup.object().shape({
+			name: Yup.string().required('Informe um nome para o exame'),
 
-      userId: Yup.string()
-        .uuid('Id informado inválido')
-        .required('Informe o ID do usuario para salvar o exame'),
-    });
+			userId: Yup.string()
+				.uuid('Id informado inválido')
+				.required('Informe o ID do usuario para salvar o exame'),
+		});
 
-    const fileTimestamp = filename.split(/(\d{13})/g);
+		const fileTimestamp = filename.split(/(\d{13})/g);
 
-    const originalFilePath = path.join(
-      __dirname,
-      '..',
-      '..',
-      'uploads',
-      userId,
-      'files',
-      filename
-    );
+		const originalFilePath = path.join(
+			__dirname,
+			'..',
+			'..',
+			'uploads',
+			userId,
+			'files',
+			filename
+		);
 
-    const finalFileName = `${fileTimestamp[1]}-${name.trim()}.pdf`;
+		const finalFileName = `${fileTimestamp[1]}-${name.trim()}.pdf`;
 
-    const newFilePath = path.join(
-      __dirname,
-      '..',
-      '..',
-      'uploads',
-      userId,
-      'files',
-      finalFileName
-    );
+		const newFilePath = path.join(
+			__dirname,
+			'..',
+			'..',
+			'uploads',
+			userId,
+			'files',
+			finalFileName
+		);
 
-    fs.renameSync(originalFilePath, newFilePath);
+		fs.renameSync(originalFilePath, newFilePath);
 
-    try {
-      await schema.validate(data, { abortEarly: false });
+		try {
+			await schema.validate(data, { abortEarly: false });
 
-      const exam = repository.create({ ...data, path: finalFileName });
+			const exam = repository.create({ ...data, path: finalFileName });
 
-      await repository.save(exam);
+			await repository.save(exam);
 
-      return response.status(201).json(exam);
-    } catch (err) {
-      return handleErrors(err, response, 'Erro ao tentar salvar o exame');
-    }
-  }
+			return response.status(201).json(exam);
+		} catch (err) {
+			return handleErrors(err, response, 'Erro ao tentar salvar o exame');
+		}
+	}
 
-  async update(request: Request, response: Response) {
-    const { name, id } = request.body;
+	async update(request: Request, response: Response) {
+		const { name, id } = request.body;
 
-    const requestFile = request.file as Express.Multer.File;
+		const requestFile = request.file as Express.Multer.File;
 
-    const repository = getRepository(Exam);
+		const repository = getRepository(Exam);
 
-    const data = { name, id };
+		const data = { name, id };
 
-    const userId = request.userId;
+		const userId = request.userId;
 
-    const userFilesPath = path.join(
-      __dirname,
-      '..',
-      '..',
-      'uploads',
-      userId,
-      'files'
-    );
+		const userFilesPath = path.join(
+			__dirname,
+			'..',
+			'..',
+			'uploads',
+			userId,
+			'files'
+		);
 
-    let finalFileName;
-    let originalFilePath;
-    let newFilePath;
+		let finalFileName;
+		let originalFilePath;
+		let newFilePath;
 
-    const schema = Yup.object().shape({
-      name: Yup.string().required('Informe um nome para o exame'),
+		const schema = Yup.object().shape({
+			name: Yup.string().required('Informe um nome para o exame'),
 
-      id: Yup.string()
-        .uuid('Id informado inválido')
-        .required('Informe o ID do exame'),
-    });
+			id: Yup.string()
+				.uuid('Id informado inválido')
+				.required('Informe o ID do exame'),
+		});
 
-    try {
-      await schema.validate(data, { abortEarly: false });
+		try {
+			await schema.validate(data, { abortEarly: false });
 
-      const databaseInfos = await repository.findOne({ id });
+			const databaseInfos = await repository.findOne({ id });
 
-      if (!databaseInfos) {
-        return response.status(200).json({ message: 'Exame não encontrado' });
-      }
+			if (!databaseInfos) {
+				return response.status(200).json({ message: 'Exame não encontrado' });
+			}
 
-      if (databaseInfos.userId !== userId) {
-        return response
-          .status(401)
-          .json({ message: 'Você não pode atualizar esse exame' });
-      }
+			if (databaseInfos.userId !== userId) {
+				return response
+					.status(401)
+					.json({ message: 'Você não pode atualizar esse exame' });
+			}
 
-      if (requestFile) {
-        const fileTimestamp = requestFile.filename.split(/(\d{13})/g);
+			if (requestFile) {
+				const fileTimestamp = requestFile.filename.split(/(\d{13})/g);
 
-        finalFileName = `${fileTimestamp[1]}-${name.trim()}.pdf`;
+				finalFileName = `${fileTimestamp[1]}-${name.trim()}.pdf`;
 
-        originalFilePath = path.join(userFilesPath, requestFile.filename);
+				originalFilePath = path.join(userFilesPath, requestFile.filename);
 
-        newFilePath = path.join(userFilesPath, finalFileName);
+				newFilePath = path.join(userFilesPath, finalFileName);
 
-        fs.renameSync(originalFilePath, newFilePath);
-        fs.unlinkSync(path.join(userFilesPath, databaseInfos.path));
-      } else {
-        finalFileName = `${Date.now()}-${name.trim()}.pdf`;
+				fs.renameSync(originalFilePath, newFilePath);
+				fs.unlinkSync(path.join(userFilesPath, databaseInfos.path));
+			} else {
+				finalFileName = `${Date.now()}-${name.trim()}.pdf`;
 
-        originalFilePath = path.join(userFilesPath, databaseInfos.path);
+				originalFilePath = path.join(userFilesPath, databaseInfos.path);
 
-        newFilePath = path.join(userFilesPath, finalFileName);
+				newFilePath = path.join(userFilesPath, finalFileName);
 
-        fs.renameSync(originalFilePath, newFilePath);
-      }
+				fs.renameSync(originalFilePath, newFilePath);
+			}
 
-      const updateExam = {
-        ...databaseInfos,
-        name,
-        path: finalFileName || databaseInfos.path,
-      };
+			const updateExam = {
+				...databaseInfos,
+				name,
+				path: finalFileName || databaseInfos.path,
+			};
 
-      const exam = repository.create(updateExam);
+			const exam = repository.create(updateExam);
 
-      await repository.save(exam);
+			await repository.save(exam);
 
-      return response.json(examView.examDetails(exam));
-    } catch (err) {
-      return handleErrors(err, response, 'Erro ao tentar salvar o exame');
-    }
-  }
+			return response.json(examView.examDetails(exam));
+		} catch (err) {
+			return handleErrors(err, response, 'Erro ao tentar salvar o exame');
+		}
+	}
 
-  async examFile(request: Request, response: Response) {
-    const { id } = request.params;
-    const userId = request.userId;
+	async examFile(request: Request, response: Response) {
+		const { id } = request.params;
+		const userId = request.userId;
 
-    const repository = getRepository(Exam);
+		const repository = getRepository(Exam);
 
-    const schema = Yup.object().shape({
-      id: Yup.string()
-        .uuid('Id informado iválido')
-        .required('Informe o id do exam'),
-    });
+		const schema = Yup.object().shape({
+			id: Yup.string()
+				.uuid('Id informado iválido')
+				.required('Informe o id do exam'),
+		});
 
-    try {
-      await schema.validate({ id }, { abortEarly: false });
+		try {
+			await schema.validate({ id }, { abortEarly: false });
 
-      const exam = await repository.findOne({ where: { id } });
+			const exam = await repository.findOne({ where: { id } });
 
-      // validates if the request user has authorization for file
-      if (exam?.userId !== userId) {
-        return response
-          .status(401)
-          .json({ message: 'você não tem acesso a este arquivo' });
-      }
+			// validates if the request user has authorization for file
+			if (exam?.userId !== userId) {
+				return response
+					.status(401)
+					.json({ message: 'você não tem acesso a este arquivo' });
+			}
 
-      const filePath = path.join(
-        __dirname,
-        '..',
-        '..',
-        'uploads',
-        userId,
-        'files',
-        exam?.path as string
-      );
+			const filePath = path.join(
+				__dirname,
+				'..',
+				'..',
+				'uploads',
+				userId,
+				'files',
+				exam?.path as string
+			);
 
-      return response.status(200).download(filePath, exam.name + '.pdf');
-    } catch (err) {
-      return handleErrors(err, response, 'Erro ao tentar baixar o exame');
-    }
-  }
+			return response.status(200).download(filePath, exam.name + '.pdf');
+		} catch (err) {
+			return handleErrors(err, response, 'Erro ao tentar baixar o exame');
+		}
+	}
 
-  async delete(request: Request, response: Response) {
-    const { id } = request.params;
-    const userId = request.userId;
-    const repository = getRepository(Exam);
-    try {
-      const exam = await repository.findOne({ id });
-      if (!exam) {
-        return response.json({ message: 'Exame não encontrado' });
-      }
-      if (exam.userId !== userId) {
-        return response
-          .status(401)
-          .json({ message: 'Você não tem permissão para excluir esse exame' });
-      }
-      await repository.delete(id);
-      const filePath = path.join(
-        __dirname,
-        '..',
-        '..',
-        'uploads',
-        userId,
-        'files',
-        exam.path
-      );
-      fs.unlinkSync(filePath);
-      return response.json({ message: 'Exame excluído com sucesso' });
-    } catch (error) {
-      return handleErrors(error, response, 'Erro ao tentar excluir o exame');
-    }
-  }
+	async delete(request: Request, response: Response) {
+		const { id } = request.params;
+		const userId = request.userId;
+		const repository = getRepository(Exam);
+		try {
+			const exam = await repository.findOne({ id });
+			if (!exam) {
+				return response.json({ message: 'Exame não encontrado' });
+			}
+			if (exam.userId !== userId) {
+				return response
+					.status(401)
+					.json({ message: 'Você não tem permissão para excluir esse exame' });
+			}
+			await repository.delete(id);
+			const filePath = path.join(
+				__dirname,
+				'..',
+				'..',
+				'uploads',
+				userId,
+				'files',
+				exam.path
+			);
+			fs.unlinkSync(filePath);
+			return response.json({ message: 'Exame excluído com sucesso' });
+		} catch (error) {
+			return handleErrors(error, response, 'Erro ao tentar excluir o exame');
+		}
+	}
 
-  async deleteMany(request: Request, response: Response) {
-    const exams: string[] = request.body;
-    const requestUserId = request.userId;
-    const repository = getRepository(Exam);
-    const schema = Yup.array()
-      .min(1, "Informe uma lista com os ID's das doenças")
-      .of(Yup.string().uuid('Id informado inválido').required('Informe o id '));
+	async deleteMany(request: Request, response: Response) {
+		const exams: string[] = request.body;
+		const requestUserId = request.userId;
+		const repository = getRepository(Exam);
+		const schema = Yup.array()
+			.min(1, "Informe uma lista com os ID's das doenças")
+			.of(Yup.string().uuid('Id informado inválido').required('Informe o id '));
 
-    try {
-      await schema.validate(exams, { abortEarly: false });
-      const res = await Promise.all(
-        exams.map(async (exam) => {
-          const examInfo = await repository.findOne({
-            where: { id: exam },
-          });
+		try {
+			await schema.validate(exams, { abortEarly: false });
+			const res = await Promise.all(
+				exams.map(async (exam) => {
+					const examInfo = await repository.findOne({
+						where: { id: exam },
+					});
 
-          const res: Record<string, string> = {};
+					const res: Record<string, string> = {};
 
-          if (examInfo?.userId !== requestUserId) {
-            res[examInfo?.name as string] = 'Você não pode excluir esse item';
-          } else {
-            await repository.delete(exam);
-            const filePath = path.join(
-              __dirname,
-              '..',
-              '..',
-              'uploads',
-              requestUserId,
-              'files',
-              examInfo.path
-            );
-            fs.unlinkSync(filePath);
-            res[examInfo?.name as string] = 'Doença excluída com sucesso';
-          }
+					if (examInfo?.userId !== requestUserId) {
+						res[examInfo?.name as string] = 'Você não pode excluir esse item';
+					} else {
+						await repository.delete(exam);
+						const filePath = path.join(
+							__dirname,
+							'..',
+							'..',
+							'uploads',
+							requestUserId,
+							'files',
+							examInfo.path
+						);
+						fs.unlinkSync(filePath);
+						res[examInfo?.name as string] = 'Doença excluída com sucesso';
+					}
 
-          return res;
-        })
-      );
-      return response.json(res);
-    } catch (error) {
-      return handleErrors(
-        error,
-        response,
-        'Erro ao excluir os exames do usuário'
-      );
-    }
-  }
+					return res;
+				})
+			);
+			return response.json(res);
+		} catch (error) {
+			return handleErrors(
+				error,
+				response,
+				'Erro ao excluir os exames do usuário'
+			);
+		}
+	}
 }
 
 export default ExamController;

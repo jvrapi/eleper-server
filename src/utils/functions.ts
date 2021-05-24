@@ -1,22 +1,22 @@
 export function firstLetterUpper(value: string) {
-  return value.charAt(0).toUpperCase() + value.slice(1);
+	return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
 export function fileNameFormatter(fileName: string) {
-  return fileName.replace(/(\d{13})-/g, '');
+	return fileName.replace(/(\d{13})-/g, '');
 }
 
 export function DateTimeToBrDate(date: string | null) {
-  if (date) {
-    const dateOnly = date.split('T')[0];
-    return dateOnly;
-  } else {
-    return 'Data não cadastrada';
-  }
+	if (date) {
+		const dateOnly = date.split('T')[0];
+		return dateOnly;
+	} else {
+		return 'Data não cadastrada';
+	}
 }
 
 export function stringFormatter(string: string) {
-  return string
-    ? string.toLowerCase().replace(/(?:^|\s)\S/g, (l) => l.toUpperCase())
-    : '';
+	return string
+		? string.toLowerCase().replace(/(?:^|\s)\S/g, (l) => l.toUpperCase())
+		: '';
 }

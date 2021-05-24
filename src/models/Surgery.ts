@@ -1,27 +1,24 @@
 import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 
-import Hospitalization from './Hospitalization';
+import UserSurgery from './UserSurgery';
 
 @Entity()
 class Surgery {
-  @PrimaryColumn()
-  readonly id: string;
+	@PrimaryColumn()
+	readonly id: string;
 
-  @Column()
-  name: string;
+	@Column()
+	name: string;
 
-  @OneToMany(
-    () => Hospitalization,
-    (hospitalization) => hospitalization.surgery
-  )
-  hospitalizations: Hospitalization[];
+	@OneToMany(() => UserSurgery, (userSurgery) => userSurgery.user)
+	userSurgeries: UserSurgery[];
 
-  constructor() {
-    if (!this.id) {
-      this.id = uuid();
-    }
-  }
+	constructor() {
+		if (!this.id) {
+			this.id = uuid();
+		}
+	}
 }
 
 export default Surgery;

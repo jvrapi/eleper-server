@@ -6,23 +6,23 @@ import UserDisease from './UserDisease';
 
 @Entity()
 class Disease {
-  @PrimaryColumn()
-  readonly id: string;
+	@PrimaryColumn()
+	readonly id: string;
 
-  @Column()
-  name: string;
+	@Column()
+	name: string;
 
-  @OneToMany(() => UserDisease, (userDisease) => userDisease.user)
-  userDiseases: UserDisease[];
+	@OneToMany(() => UserDisease, (userDisease) => userDisease.user)
+	userDiseases: UserDisease[];
 
-  @OneToMany(() => Annotation, (annotation) => annotation.disease)
-  annotations: Annotation[];
+	@OneToMany(() => Annotation, (annotation) => annotation.disease)
+	annotations: Annotation[];
 
-  constructor() {
-    if (!this.id) {
-      this.id = uuid();
-    }
-  }
+	constructor() {
+		if (!this.id) {
+			this.id = uuid();
+		}
+	}
 }
 
 export default Disease;

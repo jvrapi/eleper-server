@@ -8,287 +8,283 @@ import Disease from '../models/Disease';
 import Hospitalization from '../models/Hospitalization';
 
 class HospitalizationController {
-  async list(request: Request, response: Response) {
-    const { userId } = request.params;
+	async list(request: Request, response: Response) {
+		const { userId } = request.params;
 
-    const requestUserId = request.userId;
+		const requestUserId = request.userId;
 
-    const repository = getRepository(Hospitalization);
+		const repository = getRepository(Hospitalization);
 
-    const schema = Yup.string().uuid('Id inválido').required('Informe o id');
+		const schema = Yup.string().uuid('Id inválido').required('Informe o id');
 
-    try {
-      await schema.validate(userId, { abortEarly: false });
+		try {
+			await schema.validate(userId, { abortEarly: false });
 
-      if (userId !== requestUserId) {
-        return response
-          .status(401)
-          .json({ message: 'Você não tem acesso a essas informações' });
-      }
+			if (userId !== requestUserId) {
+				return response
+					.status(401)
+					.json({ message: 'Você não tem acesso a essas informações' });
+			}
 
-      const hospitalizations = await repository.find({
-        where: { userId: userId },
-        relations: ['diseases'],
-      });
+			const hospitalizations = await repository.find({
+				where: { userId: userId },
+				relations: ['diseases'],
+			});
 
-      return response.json(hospitalizations);
-    } catch (error) {
-      handleErrors(
-        error,
-        response,
-        'Erro ao tentar listar as internações do usuário'
-      );
-    }
-  }
-  async getById(request: Request, response: Response) {
-    const { id } = request.params;
+			return response.json(hospitalizations);
+		} catch (error) {
+			handleErrors(
+				error,
+				response,
+				'Erro ao tentar listar as internações do usuário'
+			);
+		}
+	}
+	async getById(request: Request, response: Response) {
+		const { id } = request.params;
 
-    console.log(id);
+		const requestUserId = request.userId;
 
-    const requestUserId = request.userId;
+		const repository = getRepository(Hospitalization);
 
-    const repository = getRepository(Hospitalization);
+		const schema = Yup.string()
+			.uuid('Id informado inválido')
+			.required('Informe o id ');
 
-    const schema = Yup.string()
-      .uuid('Id informado inválido')
-      .required('Informe o id ');
+		try {
+			await schema.validate(id, { abortEarly: false });
 
-    try {
-      await schema.validate(id, { abortEarly: false });
+			const hospitalization = await repository.findOne({
+				where: { id },
+				relations: ['diseases'],
+			});
 
-      const hospitalization = await repository.findOne({
-        where: { id },
-        relations: ['diseases'],
-      });
+			if (!hospitalization) {
+				return response.sendStatus(200);
+			}
 
-      if (!hospitalization) {
-        return response.sendStatus(200);
-      }
+			if (requestUserId !== hospitalization?.userId) {
+				return response
+					.status(401)
+					.json({ message: 'Você não tem acesso a essas informações' });
+			}
 
-      if (requestUserId !== hospitalization?.userId) {
-        return response
-          .status(401)
-          .json({ message: 'Você não tem acesso a essas informações' });
-      }
+			return response.json(hospitalization);
+		} catch (error) {
+			handleErrors(error, response, 'Erro ao listar as informações');
+		}
+	}
 
-      return response.json(hospitalization);
-    } catch (error) {
-      handleErrors(error, response, 'Erro ao listar as informações');
-    }
-  }
+	async save(request: Request, response: Response) {
+		const {
+			userId,
+			entranceDate,
+			exitDate,
+			location,
+			reason,
+			diseases,
+		} = request.body;
 
-  async save(request: Request, response: Response) {
-    const {
-      userId,
+		const requestUserId = request.userId;
 
-      entranceDate,
-      exitDate,
-      location,
-      reason,
-      diseases,
-    } = request.body;
+		const repository = getRepository(Hospitalization);
 
-    const requestUserId = request.userId;
+		const data = {
+			userId,
+			entranceDate: moment(entranceDate).toDate(),
+			exitDate: exitDate ? moment(exitDate).toDate() : null,
+			location,
+			reason,
+			diseases,
+		};
 
-    const repository = getRepository(Hospitalization);
+		const schema = Yup.object().shape({
+			userId: Yup.string()
+				.uuid('Id informado inválido')
+				.required('Informe o id '),
 
-    const data = {
-      userId,
+			entranceDate: Yup.string()
+				.test('date-validation', 'Data não é valida', (date) => {
+					const dateIsValid = moment(
+						moment(date).toDate(),
+						'YYYY-MM-DDThh:mm:ssZ',
+						true
+					).isValid();
+					return dateIsValid;
+				})
+				.required('Informe a data de entrada'),
 
-      entranceDate: moment(entranceDate).toDate(),
-      exitDate: exitDate ? moment(exitDate).toDate() : null,
-      location,
-      reason,
-      diseases,
-    };
+			exitDate: Yup.string()
+				.nullable()
+				.test('date-validation', 'Data não é valida', (date) => {
+					if (date) {
+						const dateIsValid = moment(
+							moment(date).toDate(),
+							'YYYY-MM-DDThh:mm:ssZ',
+							true
+						).isValid();
+						return dateIsValid;
+					}
+					return true;
+				}),
 
-    const schema = Yup.object().shape({
-      userId: Yup.string()
-        .uuid('Id informado inválido')
-        .required('Informe o id '),
+			location: Yup.string().required('Informe aonde aconteceu a internação'),
+			reason: Yup.string().required('Informe o motivo da internação'),
+			diseases: Yup.array().of(Yup.string().uuid('Id informado inválido')),
+		});
 
-      entranceDate: Yup.string()
-        .test('date-validation', 'Data não é valida', (date) => {
-          const dateIsValid = moment(
-            new Date(date as string),
-            'YYYY-MM-DDThh:mm:ssZ',
-            true
-          ).isValid();
-          return dateIsValid;
-        })
-        .required('Informe a data de entrada'),
+		try {
+			await schema.validate(data, { abortEarly: false });
+			if (userId !== requestUserId) {
+				return response
+					.status(401)
+					.json({ message: 'Você não tem acesso a essas informações' });
+			}
 
-      exitDate: Yup.string()
-        .nullable()
-        .test('date-validation', 'Data não é valida', (date) => {
-          if (date) {
-            const dateIsValid = moment(
-              new Date(date as string),
-              'YYYY-MM-DDThh:mm:ssZ',
-              true
-            ).isValid();
-            return dateIsValid;
-          }
-          return true;
-        }),
+			const diseaseRepository = getRepository(Disease);
 
-      location: Yup.string().required('Informe aonde aconteceu a internação'),
-      reason: Yup.string().required('Informe o motivo da internação'),
-      diseases: Yup.array().of(Yup.string().uuid('Id informado inválido')),
-    });
+			const diseasesFound = await diseaseRepository.findByIds(diseases);
 
-    try {
-      await schema.validate(data, { abortEarly: false });
-      if (userId !== requestUserId) {
-        return response
-          .status(401)
-          .json({ message: 'Você não tem acesso a essas informações' });
-      }
+			data.diseases = diseasesFound;
 
-      const diseaseRepository = getRepository(Disease);
+			const hospitalization = repository.create(data);
 
-      const findDiseases = await diseaseRepository.findByIds(diseases);
+			await repository.save(hospitalization);
 
-      data.diseases = findDiseases;
+			return response.status(201).json(hospitalization);
+		} catch (error) {
+			handleErrors(error, response, 'Erro ao tentar salvar as informações');
+		}
+	}
 
-      const hospitalization = repository.create(data);
+	async update(request: Request, response: Response) {
+		const {
+			id,
+			userId,
+			entranceDate,
+			exitDate,
+			location,
+			reason,
+			diseases,
+		} = request.body;
 
-      await repository.save(hospitalization);
+		const requestUserId = request.userId;
 
-      return response.status(201).json(hospitalization);
-    } catch (error) {
-      handleErrors(error, response, 'Erro ao tentar salvar as informações');
-    }
-  }
+		const repository = getRepository(Hospitalization);
 
-  async update(request: Request, response: Response) {
-    const {
-      id,
-      userId,
-      entranceDate,
-      exitDate,
-      location,
-      reason,
-      diseases,
-    } = request.body;
+		const data = {
+			id,
+			userId,
+			entranceDate: moment(entranceDate).toDate(),
+			exitDate: exitDate ? moment(exitDate).toDate() : null,
+			location,
+			reason,
+			diseases,
+		};
 
-    const requestUserId = request.userId;
+		const schema = Yup.object().shape({
+			id: Yup.string().uuid('Id informado inválido').required('Informe o id'),
 
-    const repository = getRepository(Hospitalization);
+			surgeryId: Yup.string().uuid('Id informado inválido'),
 
-    const data = {
-      id,
-      userId,
-      entranceDate: moment(entranceDate).toDate(),
-      exitDate: exitDate ? moment(exitDate).toDate() : null,
-      location,
-      reason,
-      diseases,
-    };
+			entranceDate: Yup.string()
+				.test('date-validation', 'Data não é valida', (date) => {
+					const dateIsValid = moment(
+						new Date(date as string),
+						'YYYY-MM-DDThh:mm:ssZ',
+						true
+					).isValid();
+					return dateIsValid;
+				})
+				.required('Informe a data de entrada'),
 
-    const schema = Yup.object().shape({
-      id: Yup.string().uuid('Id informado inválido').required('Informe o id'),
+			exitDate: Yup.string()
+				.nullable()
+				.test('date-validation', 'Data não é valida', (date) => {
+					if (date) {
+						const dateIsValid = moment(
+							new Date(date as string),
+							'YYYY-MM-DDThh:mm:ssZ',
+							true
+						).isValid();
+						return dateIsValid;
+					}
+					return true;
+				}),
 
-      surgeryId: Yup.string().uuid('Id informado inválido'),
+			location: Yup.string().required('Informe aonde aconteceu a internação'),
+			reason: Yup.string().required('Informe o motivo da internação'),
+			diseases: Yup.array().of(Yup.string().uuid('Id informado inválido')),
+		});
 
-      entranceDate: Yup.string()
-        .test('date-validation', 'Data não é valida', (date) => {
-          const dateIsValid = moment(
-            new Date(date as string),
-            'YYYY-MM-DDThh:mm:ssZ',
-            true
-          ).isValid();
-          return dateIsValid;
-        })
-        .required('Informe a data de entrada'),
+		try {
+			await schema.validate(data, { abortEarly: false });
+			if (userId !== requestUserId) {
+				return response
+					.status(401)
+					.json({ message: 'Você não tem acesso a essas informações' });
+			}
 
-      exitDate: Yup.string()
-        .nullable()
-        .test('date-validation', 'Data não é valida', (date) => {
-          if (date) {
-            const dateIsValid = moment(
-              new Date(date as string),
-              'YYYY-MM-DDThh:mm:ssZ',
-              true
-            ).isValid();
-            return dateIsValid;
-          }
-          return true;
-        }),
+			const diseaseRepository = getRepository(Disease);
 
-      location: Yup.string().required('Informe aonde aconteceu a internação'),
-      reason: Yup.string().required('Informe o motivo da internação'),
-      diseases: Yup.array().of(Yup.string().uuid('Id informado inválido')),
-    });
+			const findDiseases = await diseaseRepository.findByIds(diseases);
 
-    try {
-      await schema.validate(data, { abortEarly: false });
-      if (userId !== requestUserId) {
-        return response
-          .status(401)
-          .json({ message: 'Você não tem acesso a essas informações' });
-      }
+			data.diseases = findDiseases;
 
-      const diseaseRepository = getRepository(Disease);
+			const hospitalization = repository.create(data);
 
-      const findDiseases = await diseaseRepository.findByIds(diseases);
+			await repository.save(hospitalization);
 
-      data.diseases = findDiseases;
+			return response.status(201).json(hospitalization);
+		} catch (error) {
+			handleErrors(error, response, 'Erro ao tentar salvar as informações');
+		}
+	}
 
-      const hospitalization = repository.create(data);
+	async deleteMany(request: Request, response: Response) {
+		const hospitalizationIds: string[] = request.body;
 
-      await repository.save(hospitalization);
+		const requestUserId = request.userId;
 
-      return response.status(201).json(hospitalization);
-    } catch (error) {
-      handleErrors(error, response, 'Erro ao tentar salvar as informações');
-    }
-  }
+		const repository = getRepository(Hospitalization);
 
-  async deleteMany(request: Request, response: Response) {
-    const hospitalizationIds: string[] = request.body;
+		const schema = Yup.array()
+			.min(1, "Informe uma lista com os ID's das doenças")
+			.of(Yup.string().uuid('Id informado inválido').required('Informe o id '));
 
-    const requestUserId = request.userId;
+		try {
+			await schema.validate(hospitalizationIds, { abortEarly: false });
+			const res = await Promise.all(
+				hospitalizationIds.map(async (id) => {
+					const hospitalizationInfo = await repository.findOne({
+						where: { id: id },
+					});
 
-    const repository = getRepository(Hospitalization);
+					const res: Record<string, string> = {};
 
-    const schema = Yup.array()
-      .min(1, "Informe uma lista com os ID's das doenças")
-      .of(Yup.string().uuid('Id informado inválido').required('Informe o id '));
+					const date = moment(hospitalizationInfo?.entranceDate).format(
+						'DD/MM/YYYY'
+					);
 
-    try {
-      await schema.validate(hospitalizationIds, { abortEarly: false });
-      const res = await Promise.all(
-        hospitalizationIds.map(async (id) => {
-          const hospitalizationInfo = await repository.findOne({
-            where: { id: id },
-          });
+					if (hospitalizationInfo?.userId !== requestUserId) {
+						res[date] = 'Você não pode excluir esse item';
+					} else {
+						await repository.delete(id);
+						res[date] = 'Internação excluída com sucesso';
+					}
 
-          const res: Record<string, string> = {};
-
-          const date = moment(hospitalizationInfo?.entranceDate).format(
-            'DD/MM/YYYY'
-          );
-
-          if (hospitalizationInfo?.userId !== requestUserId) {
-            res[date] = 'Você não pode excluir esse item';
-          } else {
-            await repository.delete(id);
-            res[date] = 'Internação excluída com sucesso';
-          }
-
-          return res;
-        })
-      );
-      return response.json(res);
-    } catch (error) {
-      return handleErrors(
-        error,
-        response,
-        'Erro ao excluir as internações do usuário'
-      );
-    }
-  }
+					return res;
+				})
+			);
+			return response.json(res);
+		} catch (error) {
+			return handleErrors(
+				error,
+				response,
+				'Erro ao excluir as internações do usuário'
+			);
+		}
+	}
 }
 
 export default HospitalizationController;

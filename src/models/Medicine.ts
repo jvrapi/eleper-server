@@ -5,20 +5,20 @@ import UserMedicine from './UserMedicine';
 
 @Entity()
 class Medicine {
-  @PrimaryColumn()
-  readonly id: string;
+	@PrimaryColumn()
+	readonly id: string;
 
-  @Column()
-  name: string;
+	@Column()
+	name: string;
 
-  @OneToMany(() => UserMedicine, (userMedicine) => userMedicine.user)
-  userMedicines: UserMedicine[];
+	@OneToMany(() => UserMedicine, (userMedicine) => userMedicine.user)
+	userMedicines: UserMedicine[];
 
-  constructor() {
-    if (!this.id) {
-      this.id = uuid();
-    }
-  }
+	constructor() {
+		if (!this.id) {
+			this.id = uuid();
+		}
+	}
 }
 
 export default Medicine;

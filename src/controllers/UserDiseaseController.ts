@@ -11,315 +11,315 @@ import UserDiseaseView from '../views/UserDiseaseView';
 const userDiseaseView = new UserDiseaseView();
 
 class UserDiseaseController {
-  async list(request: Request, response: Response) {
-    const { userId } = request.params;
+	async list(request: Request, response: Response) {
+		const { userId } = request.params;
 
-    const userIdToken = request.userId;
+		const userIdToken = request.userId;
 
-    const repository = getRepository(UserDisease);
+		const repository = getRepository(UserDisease);
 
-    const schema = Yup.string()
-      .uuid('Id informado inválido')
-      .required('Informe o id');
+		const schema = Yup.string()
+			.uuid('Id informado inválido')
+			.required('Informe o id');
 
-    try {
-      await schema.validate(userId, { abortEarly: false });
+		try {
+			await schema.validate(userId, { abortEarly: false });
 
-      const diseases = await repository.find({
-        where: { userId },
-        relations: ['disease', 'user'],
-      });
+			const diseases = await repository.find({
+				where: { userId },
+				relations: ['disease', 'user'],
+			});
 
-      if (userIdToken !== userId) {
-        return response
-          .status(401)
-          .json({ message: 'Você não tem acesso a essa informações' });
-      }
+			if (userIdToken !== userId) {
+				return response
+					.status(401)
+					.json({ message: 'Você não tem acesso a essa informações' });
+			}
 
-      return response.json(userDiseaseView.listDiseases(diseases));
-    } catch (error) {
-      return handleErrors(
-        error,
-        response,
-        'Erro ao listar as doenças do usuário'
-      );
-    }
-  }
+			return response.json(userDiseaseView.listDiseases(diseases));
+		} catch (error) {
+			return handleErrors(
+				error,
+				response,
+				'Erro ao listar as doenças do usuário'
+			);
+		}
+	}
 
-  async getById(request: Request, response: Response) {
-    const { id } = request.params;
+	async getById(request: Request, response: Response) {
+		const { id } = request.params;
 
-    const userId = request.userId;
+		const userId = request.userId;
 
-    const repository = getRepository(UserDisease);
+		const repository = getRepository(UserDisease);
 
-    const schema = Yup.string()
-      .uuid('Id informado inválido')
-      .required('Informe o id');
+		const schema = Yup.string()
+			.uuid('Id informado inválido')
+			.required('Informe o id');
 
-    try {
-      await schema.validate(id, { abortEarly: false });
+		try {
+			await schema.validate(id, { abortEarly: false });
 
-      const userDiseaseData = await repository.findOne({
-        where: { id },
-        relations: ['disease'],
-      });
+			const userDiseaseData = await repository.findOne({
+				where: { id },
+				relations: ['disease'],
+			});
 
-      if (userDiseaseData?.userId !== userId) {
-        return response
-          .status(401)
-          .json({ message: 'Você não possui acesso a essas informações' });
-      }
+			if (userDiseaseData?.userId !== userId) {
+				return response
+					.status(401)
+					.json({ message: 'Você não possui acesso a essas informações' });
+			}
 
-      return response.json(userDiseaseView.details(userDiseaseData));
-    } catch (error) {
-      handleErrors(
-        error,
-        response,
-        'Erro ao tentar recuperar as informações da doença do usuário '
-      );
-    }
-  }
+			return response.json(userDiseaseView.details(userDiseaseData));
+		} catch (error) {
+			handleErrors(
+				error,
+				response,
+				'Erro ao tentar recuperar as informações da doença do usuário '
+			);
+		}
+	}
 
-  async saveMany(request: Request, response: Response) {
-    const diseases: UserDisease[] = request.body;
+	async saveMany(request: Request, response: Response) {
+		const diseases: UserDisease[] = request.body;
 
-    const repository = getRepository(UserDisease);
+		const repository = getRepository(UserDisease);
 
-    const schema = Yup.array()
-      .min(1, "Informe uma lista com os ID's das doenças")
-      .of(
-        Yup.object().shape({
-          diseaseId: Yup.string()
-            .uuid('Id informado inválido')
-            .required('Informe o id da doença'),
+		const schema = Yup.array()
+			.min(1, "Informe uma lista com os ID's das doenças")
+			.of(
+				Yup.object().shape({
+					diseaseId: Yup.string()
+						.uuid('Id informado inválido')
+						.required('Informe o id da doença'),
 
-          userId: Yup.string()
-            .uuid('Id informado inválido')
-            .required('Informe o id do usuário'),
+					userId: Yup.string()
+						.uuid('Id informado inválido')
+						.required('Informe o id do usuário'),
 
-          diagnosisDate: Yup.string().test(
-            'date-validation',
-            'Data não é valida',
-            (date) => {
-              if (date) {
-                const dateIsValid = moment(
-                  moment(date).toDate(),
-                  'YYYY-MM-DDThh:mm:ssZ',
-                  true
-                ).isValid();
-                return dateIsValid;
-              }
-              return true;
-            }
-          ),
-          active: Yup.boolean(),
-        })
-      );
+					diagnosisDate: Yup.string().test(
+						'date-validation',
+						'Data não é valida',
+						(date) => {
+							if (date) {
+								const dateIsValid = moment(
+									moment(date).toDate(),
+									'YYYY-MM-DDThh:mm:ssZ',
+									true
+								).isValid();
+								return dateIsValid;
+							}
+							return true;
+						}
+					),
+					active: Yup.boolean(),
+				})
+			);
 
-    try {
-      await schema.validate(diseases, { abortEarly: false });
-      const userDiseases = await Promise.all(
-        diseases.map(async (userDisease) => {
-          userDisease.diagnosisDate = moment(
-            userDisease.diagnosisDate
-          ).toDate();
-          const saveDisease = repository.create(userDisease);
-          await repository.save(saveDisease);
-          return saveDisease;
-        })
-      );
-      return response.status(201).json(userDiseases);
-    } catch (err) {
-      return handleErrors(
-        err,
-        response,
-        'Erro ao salvar as doenças do usuário'
-      );
-    }
-  }
+		try {
+			await schema.validate(diseases, { abortEarly: false });
+			const userDiseases = await Promise.all(
+				diseases.map(async (userDisease) => {
+					userDisease.diagnosisDate = moment(
+						userDisease.diagnosisDate
+					).toDate();
+					const saveDisease = repository.create(userDisease);
+					await repository.save(saveDisease);
+					return saveDisease;
+				})
+			);
+			return response.status(201).json(userDiseases);
+		} catch (err) {
+			return handleErrors(
+				err,
+				response,
+				'Erro ao salvar as doenças do usuário'
+			);
+		}
+	}
 
-  async update(request: Request, response: Response) {
-    const { id, diagnosisDate, active } = request.body;
+	async update(request: Request, response: Response) {
+		const { id, diagnosisDate, active } = request.body;
 
-    const repository = getRepository(UserDisease);
+		const repository = getRepository(UserDisease);
 
-    const userId = request.userId;
+		const userId = request.userId;
 
-    const data = {
-      id,
-      diagnosisDate: moment(diagnosisDate).toDate(),
-      active,
-    };
+		const data = {
+			id,
+			diagnosisDate: moment(diagnosisDate).toDate(),
+			active,
+		};
 
-    const schema = Yup.object().shape({
-      id: Yup.string().uuid().required('Informe o id'),
+		const schema = Yup.object().shape({
+			id: Yup.string().uuid().required('Informe o id'),
 
-      active: Yup.boolean(),
+			active: Yup.boolean(),
 
-      diagnosisDate: Yup.date().test(
-        'date-validation',
-        'Data não é valida',
-        (date) => {
-          if (date) {
-            const dateIsValid = moment(
-              date,
-              'YYYY-MM-DDThh:mm:ssZ',
-              true
-            ).isValid();
-            return dateIsValid;
-          }
-          return true;
-        }
-      ),
-    });
+			diagnosisDate: Yup.date().test(
+				'date-validation',
+				'Data não é valida',
+				(date) => {
+					if (date) {
+						const dateIsValid = moment(
+							date,
+							'YYYY-MM-DDThh:mm:ssZ',
+							true
+						).isValid();
+						return dateIsValid;
+					}
+					return true;
+				}
+			),
+		});
 
-    try {
-      await schema.validate(data, { abortEarly: false });
-      const userDisease = await repository.findOne({ id });
-      if (userDisease?.userId !== userId) {
-        return response
-          .status(401)
-          .json({ message: 'Você não pode atualizar essas informações' });
-      }
-      const userDiseaseUpdated = repository.create(data);
+		try {
+			await schema.validate(data, { abortEarly: false });
+			const userDisease = await repository.findOne({ id });
+			if (userDisease?.userId !== userId) {
+				return response
+					.status(401)
+					.json({ message: 'Você não pode atualizar essas informações' });
+			}
+			const userDiseaseUpdated = repository.create(data);
 
-      await repository.save(userDiseaseUpdated);
-      const UserDiseaseResponse = await repository.findOne({
-        where: { id: userDiseaseUpdated.id },
-        relations: ['disease'],
-      });
-      return response.json(
-        userDiseaseView.details(UserDiseaseResponse as UserDisease)
-      );
-    } catch (error) {
-      handleErrors(error, response, 'Erro ao tentar atualizar as informações');
-    }
-  }
+			await repository.save(userDiseaseUpdated);
+			const UserDiseaseResponse = await repository.findOne({
+				where: { id: userDiseaseUpdated.id },
+				relations: ['disease'],
+			});
+			return response.json(
+				userDiseaseView.details(UserDiseaseResponse as UserDisease)
+			);
+		} catch (error) {
+			handleErrors(error, response, 'Erro ao tentar atualizar as informações');
+		}
+	}
 
-  async unrecordedDiseases(request: Request, response: Response) {
-    const { id } = request.params;
+	async unrecordedDiseases(request: Request, response: Response) {
+		const { id } = request.params;
 
-    const userId = request.userId;
+		const userId = request.userId;
 
-    const repository = getRepository(UserDisease);
+		const repository = getRepository(UserDisease);
 
-    const diseaseRepository = getRepository(Disease);
+		const diseaseRepository = getRepository(Disease);
 
-    try {
-      if (id !== userId) {
-        return response
-          .status(401)
-          .json({ message: 'Você não tem acesso a essa infomrações' });
-      }
-      const recordedDiseases = await repository
-        .createQueryBuilder('ud')
-        .select('ud.diseaseId as id')
-        .innerJoin('ud.user', 'user')
-        .where(`ud.userId = '${id}' `)
-        .getQuery();
+		try {
+			if (id !== userId) {
+				return response
+					.status(401)
+					.json({ message: 'Você não tem acesso a essa infomrações' });
+			}
+			const recordedDiseases = await repository
+				.createQueryBuilder('ud')
+				.select('ud.diseaseId as id')
+				.innerJoin('ud.user', 'user')
+				.where(`ud.userId = '${id}' `)
+				.getQuery();
 
-      const unrecordedDiseases = await diseaseRepository
-        .createQueryBuilder('d')
-        .select(['d.id as id', 'd.name as name'])
-        .where(`d.id NOT IN (${recordedDiseases})`)
-        .orderBy('d.name')
-        .getRawMany();
+			const unrecordedDiseases = await diseaseRepository
+				.createQueryBuilder('d')
+				.select(['d.id as id', 'd.name as name'])
+				.where(`d.id NOT IN (${recordedDiseases})`)
+				.orderBy('d.name')
+				.getRawMany();
 
-      return response.send(unrecordedDiseases);
-    } catch (error) {
-      return handleErrors(
-        error,
-        response,
-        'Erro ao listar as doenças do usuário'
-      );
-    }
-  }
+			return response.send(unrecordedDiseases);
+		} catch (error) {
+			return handleErrors(
+				error,
+				response,
+				'Erro ao listar as doenças do usuário'
+			);
+		}
+	}
 
-  async delete(request: Request, response: Response) {
-    const { id } = request.params;
+	async delete(request: Request, response: Response) {
+		const { id } = request.params;
 
-    const requestUserId = request.userId;
+		const requestUserId = request.userId;
 
-    const repository = getRepository(UserDisease);
+		const repository = getRepository(UserDisease);
 
-    const schema = Yup.string()
-      .uuid('Id informado inválido')
-      .required('Informe o id');
+		const schema = Yup.string()
+			.uuid('Id informado inválido')
+			.required('Informe o id');
 
-    try {
-      await schema.validate(id, { abortEarly: false });
+		try {
+			await schema.validate(id, { abortEarly: false });
 
-      const userDisease = await repository.findOne({
-        where: { id },
-        relations: ['disease'],
-      });
+			const userDisease = await repository.findOne({
+				where: { id },
+				relations: ['disease'],
+			});
 
-      if (userDisease?.userId !== requestUserId) {
-        return response
-          .status(401)
-          .json({ message: 'Você não excluir esse item' });
-      }
-      const res: Record<string, string> = {};
+			if (userDisease?.userId !== requestUserId) {
+				return response
+					.status(401)
+					.json({ message: 'Você não excluir esse item' });
+			}
+			const res: Record<string, string> = {};
 
-      await repository.delete(id);
+			await repository.delete(id);
 
-      res[userDisease.disease.name] = 'Doença excluída com sucesso';
+			res[userDisease.disease.name] = 'Doença excluída com sucesso';
 
-      return response.json(res);
-    } catch (error) {
-      return handleErrors(
-        error,
-        response,
-        'Erro ao excluir a doença do usuário'
-      );
-    }
-  }
+			return response.json(res);
+		} catch (error) {
+			return handleErrors(
+				error,
+				response,
+				'Erro ao excluir a doença do usuário'
+			);
+		}
+	}
 
-  async deleteMany(request: Request, response: Response) {
-    const userDiseases: string[] = request.body;
+	async deleteMany(request: Request, response: Response) {
+		const userDiseases: string[] = request.body;
 
-    const requestUserId = request.userId;
+		const requestUserId = request.userId;
 
-    const repository = getRepository(UserDisease);
+		const repository = getRepository(UserDisease);
 
-    const schema = Yup.array()
-      .min(1, "Informe uma lista com os ID's das doenças")
-      .of(Yup.string().uuid('Id informado inválido').required('Informe o id '));
+		const schema = Yup.array()
+			.min(1, "Informe uma lista com os ID's das doenças")
+			.of(Yup.string().uuid('Id informado inválido').required('Informe o id '));
 
-    try {
-      await schema.validate(userDiseases, { abortEarly: false });
+		try {
+			await schema.validate(userDiseases, { abortEarly: false });
 
-      const res = await Promise.all(
-        userDiseases.map(async (userDisease) => {
-          const userDiseaseInfo = await repository.findOne({
-            where: { id: userDisease },
-            relations: ['disease'],
-          });
+			const res = await Promise.all(
+				userDiseases.map(async (userDisease) => {
+					const userDiseaseInfo = await repository.findOne({
+						where: { id: userDisease },
+						relations: ['disease'],
+					});
 
-          const res: Record<string, string> = {};
+					const res: Record<string, string> = {};
 
-          if (userDiseaseInfo?.userId !== requestUserId) {
-            res[userDiseaseInfo?.disease.name as string] =
-              'Você não pode excluir esse item';
-          } else {
-            await repository.delete(userDisease);
-            res[userDiseaseInfo?.disease.name as string] =
-              'Doença excluída com sucesso';
-          }
+					if (userDiseaseInfo?.userId !== requestUserId) {
+						res[userDiseaseInfo?.disease.name as string] =
+							'Você não pode excluir esse item';
+					} else {
+						await repository.delete(userDisease);
+						res[userDiseaseInfo?.disease.name as string] =
+							'Doença excluída com sucesso';
+					}
 
-          return res;
-        })
-      );
-      return response.json(res);
-    } catch (error) {
-      return handleErrors(
-        error,
-        response,
-        'Erro ao excluir as doenças do usuário'
-      );
-    }
-  }
+					return res;
+				})
+			);
+			return response.json(res);
+		} catch (error) {
+			return handleErrors(
+				error,
+				response,
+				'Erro ao excluir as doenças do usuário'
+			);
+		}
+	}
 }
 
 export default UserDiseaseController;
