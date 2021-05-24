@@ -34,7 +34,7 @@ class UserSurgery {
 		() => Hospitalization,
 		(hospitalization) => hospitalization.userSurgeries
 	)
-	@JoinColumn({ name: 'user_id' })
+	@JoinColumn({ name: 'hospitalization_id' })
 	hospitalization: Hospitalization;
 
 	constructor() {

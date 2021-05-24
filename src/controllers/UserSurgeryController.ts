@@ -9,6 +9,9 @@ import Hospitalization from '../models/Hospitalization';
 import Surgery from '../models/Surgery';
 import UserSurgery from '../models/UserSurgery';
 import { stringFormatter } from '../utils/functions';
+import UserSurgeryView from '../views/UserSurgery';
+
+const userSurgeryView = new UserSurgeryView();
 
 interface DefaultFields {
 	userId: string;
@@ -44,9 +47,12 @@ class UserSurgeryController {
 					.status(401)
 					.json({ message: 'você não possui acesso a essas informações' });
 			}
-			const userSurgeries = await repository.find({ where: { userId } });
+			const userSurgeries = await repository.find({
+				where: { userId },
+				relations: ['surgery', 'hospitalization'],
+			});
 
-			return response.json(userSurgeries);
+			return response.json(userSurgeryView.list(userSurgeries));
 		} catch (error) {
 			handleErrors(error, response, 'Erro ao listar as cirurgias do usuário');
 		}
