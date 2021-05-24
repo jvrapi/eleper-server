@@ -20,12 +20,6 @@ export class CreateHospitalizationTable1620410451559
           },
 
           {
-            name: 'surgery_id',
-            type: 'varchar',
-            length: '36',
-            isNullable: true,
-          },
-          {
             name: 'entrance_date',
             type: 'date',
           },
@@ -50,15 +44,6 @@ export class CreateHospitalizationTable1620410451559
             name: 'FK_Hospitalization_User',
             columnNames: ['user_id'],
             referencedTableName: 'user',
-            referencedColumnNames: ['id'],
-            onUpdate: 'CASCADE',
-            onDelete: 'CASCADE',
-          },
-
-          {
-            name: 'FK_Hospitalization_Surgery',
-            columnNames: ['surgery_id'],
-            referencedTableName: 'surgery',
             referencedColumnNames: ['id'],
             onUpdate: 'CASCADE',
             onDelete: 'CASCADE',

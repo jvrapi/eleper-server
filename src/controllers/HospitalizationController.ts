@@ -43,6 +43,8 @@ class HospitalizationController {
   async getById(request: Request, response: Response) {
     const { id } = request.params;
 
+    console.log(id);
+
     const requestUserId = request.userId;
 
     const repository = getRepository(Hospitalization);
@@ -78,7 +80,7 @@ class HospitalizationController {
   async save(request: Request, response: Response) {
     const {
       userId,
-      surgeryId,
+
       entranceDate,
       exitDate,
       location,
@@ -92,7 +94,7 @@ class HospitalizationController {
 
     const data = {
       userId,
-      surgeryId,
+
       entranceDate: moment(entranceDate).toDate(),
       exitDate: exitDate ? moment(exitDate).toDate() : null,
       location,
@@ -104,8 +106,6 @@ class HospitalizationController {
       userId: Yup.string()
         .uuid('Id informado inválido')
         .required('Informe o id '),
-
-      surgeryId: Yup.string().uuid('Id informado inválido'),
 
       entranceDate: Yup.string()
         .test('date-validation', 'Data não é valida', (date) => {
@@ -165,7 +165,6 @@ class HospitalizationController {
     const {
       id,
       userId,
-      surgeryId,
       entranceDate,
       exitDate,
       location,
@@ -180,7 +179,6 @@ class HospitalizationController {
     const data = {
       id,
       userId,
-      surgeryId,
       entranceDate: moment(entranceDate).toDate(),
       exitDate: exitDate ? moment(exitDate).toDate() : null,
       location,
@@ -190,10 +188,6 @@ class HospitalizationController {
 
     const schema = Yup.object().shape({
       id: Yup.string().uuid('Id informado inválido').required('Informe o id'),
-
-      userId: Yup.string()
-        .uuid('Id informado inválido')
-        .required('Informe o id do usuário'),
 
       surgeryId: Yup.string().uuid('Id informado inválido'),
 

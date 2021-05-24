@@ -10,7 +10,6 @@ import {
 import { v4 as uuid } from 'uuid';
 
 import Disease from './Disease';
-import Surgery from './Surgery';
 import User from './User';
 
 @Entity()
@@ -20,9 +19,6 @@ class Hospitalization {
 
   @Column('varchar', { name: 'user_id' })
   readonly userId: string;
-
-  @Column('varchar', { name: 'surgery_id' })
-  readonly surgeryId: string;
 
   @Column('date', { name: 'entrance_date' })
   entranceDate: Date;
@@ -39,10 +35,6 @@ class Hospitalization {
   @ManyToOne(() => User, (user) => user.hospitalizations)
   @JoinColumn({ name: 'user_id' })
   user: User;
-
-  @ManyToOne(() => Surgery, (surgery) => surgery.hospitalizations)
-  @JoinColumn({ name: 'surgery_id' })
-  surgery: Surgery;
 
   @ManyToMany(() => Disease, { cascade: true })
   @JoinTable({
