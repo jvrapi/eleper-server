@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 
-export class CreateUserSurgeryTable1620358710798 implements MigrationInterface {
+export class CreateUserSurgeryTable1621802127818 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
@@ -17,20 +17,19 @@ export class CreateUserSurgeryTable1620358710798 implements MigrationInterface {
             type: 'varchar',
             length: '36',
           },
+
           {
             name: 'surgery_id',
             type: 'varchar',
             length: '36',
           },
+
           {
-            name: 'date',
-            type: 'date',
-          },
-          {
-            name: 'location',
+            name: 'hospitalization_id',
             type: 'varchar',
-            length: '100',
+            length: '36',
           },
+
           {
             name: 'after_effects',
             type: 'varchar',
@@ -51,6 +50,14 @@ export class CreateUserSurgeryTable1620358710798 implements MigrationInterface {
             name: 'FK_UserSurgery_Surgery',
             columnNames: ['surgery_id'],
             referencedTableName: 'surgery',
+            referencedColumnNames: ['id'],
+            onUpdate: 'CASCADE',
+            onDelete: 'CASCADE',
+          },
+          {
+            name: 'FK_UserSurgery_Hospitalization',
+            columnNames: ['hospitalization_id'],
+            referencedTableName: 'hospitalization',
             referencedColumnNames: ['id'],
             onUpdate: 'CASCADE',
             onDelete: 'CASCADE',
