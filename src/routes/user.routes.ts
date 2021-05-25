@@ -20,5 +20,6 @@ routes.get(
 );
 
 routes.put('/', AuthenticationMiddleware, userController.update);
+routes.delete('/:userId', AuthenticationMiddleware, userController.delete);
 
 export default routes;

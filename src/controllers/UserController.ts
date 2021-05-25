@@ -1,7 +1,9 @@
 import bcrypt from 'bcryptjs';
 import { Request, Response } from 'express';
+import fs from 'fs';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
+import path from 'path';
 import { getRepository } from 'typeorm';
 import * as Yup from 'yup';
 
@@ -311,6 +313,33 @@ class UserController {
 				response,
 				'Erro ao atualizar as informações do usuario'
 			);
+		}
+	}
+
+	async delete(request: Request, response: Response) {
+		const { userId } = request.params;
+		const requestUserId = request.userId;
+
+		const repository = getRepository(User);
+
+		const schema = Yup.string()
+			.uuid('Id informado inválido')
+			.required('Informe o id ');
+
+		try {
+			await schema.validate(userId, { abortEarly: false });
+
+			if (userId !== requestUserId) {
+				return response
+					.status(401)
+					.json({ message: 'você não pode realizar essa ação' });
+			}
+			await repository.delete(userId);
+			const userDir = path.join(__dirname, '..', '..', 'uploads', userId);
+			fs.rmSync(userDir, { recursive: true });
+			return response.sendStatus(200);
+		} catch (error) {
+			handleErrors(error, response, 'Erro ao excluir a conta do usuario');
 		}
 	}
 }
