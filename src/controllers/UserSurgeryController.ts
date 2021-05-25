@@ -19,7 +19,7 @@ interface DefaultFields {
 }
 
 interface Save extends DefaultFields {
-	surgery: string;
+	surgeryId: string;
 }
 
 interface Update extends DefaultFields {
@@ -92,13 +92,11 @@ class UserSurgeryController {
 		const {
 			userId,
 			hospitalization,
-			surgery,
+			surgeryId,
 			afterEffects,
 		}: Save = request.body;
 
 		const repository = getRepository(UserSurgery);
-
-		const surgeryRepository = getRepository(Surgery);
 
 		const hospitalizationRepository = getRepository(Hospitalization);
 
@@ -136,12 +134,14 @@ class UserSurgeryController {
 				location: Yup.string().required('Informe aonde aconteceu a internação'),
 				reason: Yup.string().required('Informe o motivo da internação'),
 			}),
-			surgery: Yup.string().required('Informe a cirurgia realizada'),
+			surgeryId: Yup.string()
+				.uuid('Id informado inválido')
+				.required('Informe o id '),
 
 			afterEffects: Yup.string().nullable(),
 		});
 
-		const data = { userId, hospitalization, surgery, afterEffects };
+		const data = { userId, hospitalization, surgeryId, afterEffects };
 
 		try {
 			await schema.validate(data, { abortEarly: false });
@@ -161,26 +161,10 @@ class UserSurgeryController {
 
 			await hospitalizationRepository.save(hospitalization);
 
-			const surgeryAlreadyExists = await surgeryRepository.findOne({
-				where: { name: surgery },
-			});
-
-			let savedSurgery: Surgery;
-
-			if (!surgeryAlreadyExists) {
-				savedSurgery = surgeryRepository.create({
-					name: stringFormatter(surgery),
-				});
-
-				await surgeryRepository.save(savedSurgery);
-			} else {
-				savedSurgery = surgeryAlreadyExists;
-			}
-
 			const UserSurgeryData = {
 				userId,
 				hospitalizationId: hospitalization.id,
-				surgeryId: savedSurgery.id,
+				surgeryId,
 				afterEffects,
 			};
 
