@@ -29,6 +29,16 @@ class UserView {
 			email: user.email,
 		};
 	}
+
+	userDetails(user: User) {
+		return {
+			id: user.id,
+			name: user.name,
+			email: user.email,
+			cpf: user.cpf,
+			birth: user.birth,
+		};
+	}
 }
 
 export default UserView;

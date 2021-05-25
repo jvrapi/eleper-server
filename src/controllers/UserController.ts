@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
+import moment from 'moment';
 import { getRepository } from 'typeorm';
 import * as Yup from 'yup';
 
@@ -66,11 +67,24 @@ class UserController {
 
 		const schema = Yup.object().shape({
 			name: Yup.string().required('Informe o nome do usuário'),
+
 			cpf: Yup.string().required('Informe o cpf do usuário'),
-			birth: Yup.date().required('Informe a data de nascimento do usuário'),
+
+			birth: Yup.string()
+				.test('date-validation', 'Data não é valida', (date) => {
+					const dateIsValid = moment(
+						moment(date).toDate(),
+						'YYYY-MM-DDThh:mm:ssZ'
+					).isValid();
+
+					return dateIsValid;
+				})
+				.required('Informe a data de nascimento'),
+
 			email: Yup.string()
 				.email('Informe um e-mail válido')
 				.required('Informe o e-mail do usuário'),
+
 			password: Yup.string()
 				.min(6, 'A senha deve ter no mínimo 6 caracteres')
 				.required('Informe a senha do usuário'),
@@ -162,6 +176,140 @@ class UserController {
 				err,
 				response,
 				'Erro ao tentar redefinir a senha do usuário'
+			);
+		}
+	}
+
+	async record(request: Request, response: Response) {
+		const { userId } = request.params;
+		const requestUserId = request.userId;
+
+		const repository = getRepository(User);
+
+		const schema = Yup.string()
+			.uuid('Id informado inválido')
+			.required('Informe o id');
+
+		try {
+			await schema.validate(userId, { abortEarly: false });
+			if (userId !== requestUserId) {
+				return response
+					.status(401)
+					.json({ message: 'Você não possui acesso a essas informações' });
+			}
+			const record = await repository.findOne({
+				where: { id: userId },
+				relations: [
+					'exams',
+					'hospitalizations',
+					'userSurgeries',
+					'userDiseases',
+					'userDiseases.disease',
+				],
+			});
+			return response.json(record);
+		} catch (error) {
+			handleErrors(error, response, 'Erro ao listar as informações do usuário');
+		}
+	}
+
+	async getById(request: Request, response: Response) {
+		const { userId } = request.params;
+
+		const requestUserId = request.userId;
+
+		const repository = getRepository(User);
+
+		const schema = Yup.string()
+			.uuid('Id informado inválido')
+			.required('Informe o id');
+
+		try {
+			await schema.validate(userId, { abortEarly: false });
+
+			if (userId !== requestUserId) {
+				return response
+					.status(401)
+					.json({ warning: 'Você não tem acesso a esse exame' });
+			}
+			const user = await repository.findOne({ id: userId });
+
+			return response.json(userView.userDetails(user as User));
+		} catch (error) {
+			handleErrors(
+				error,
+				response,
+				'Erro ao tentar pegar as informações do exame'
+			);
+		}
+	}
+
+	async update(request: Request, response: Response) {
+		const { id, name, email, cpf, birth, password } = request.body;
+
+		const requestUserId = request.userId;
+
+		const repository = getRepository(User);
+
+		const schema = Yup.object().shape({
+			id: Yup.string().uuid('Id informado inválido').required('Informe o id'),
+
+			name: Yup.string().required('Informe o nome do usuário'),
+
+			cpf: Yup.string().required('Informe o cpf do usuário'),
+
+			birth: Yup.string()
+				.test('date-validation', 'Data não é valida', (date) => {
+					const dateIsValid = moment(
+						moment(date).toDate(),
+						'YYYY-MM-DDThh:mm:ssZ'
+					).isValid();
+
+					return dateIsValid;
+				})
+				.required('Informe a data de nascimento'),
+
+			email: Yup.string()
+				.email('Informe um e-mail válido')
+				.required('Informe o e-mail do usuário'),
+
+			password: Yup.string().min(6, 'A senha deve ter no mínimo 6 caracteres'),
+		});
+
+		const data = {
+			id,
+			name,
+			email,
+			cpf,
+			birth,
+			password,
+		};
+
+		try {
+			await schema.validate(data, { abortEarly: false });
+
+			if (requestUserId !== id) {
+				return response
+					.status(401)
+					.json({ warning: 'Você não tem acesso a esse exame' });
+			}
+
+			data.birth = moment(data.birth).toDate();
+
+			const dbInfo = await repository.findOne({ id });
+
+			if (!password) {
+				data.password = dbInfo?.password;
+			}
+
+			const userDetails = repository.create(data);
+			await repository.save(userDetails);
+			return response.json(userView.userDetails(userDetails));
+		} catch (error) {
+			handleErrors(
+				error,
+				response,
+				'Erro ao atualizar as informações do usuario'
 			);
 		}
 	}

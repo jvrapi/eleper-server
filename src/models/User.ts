@@ -50,7 +50,10 @@ class User {
 	@BeforeInsert()
 	@BeforeUpdate()
 	hashPassword() {
-		this.password = bcrypt.hashSync(this.password, 12);
+		const isBcryptHash = this.password.indexOf('$2a$12$');
+		if (!(isBcryptHash > -1)) {
+			this.password = bcrypt.hashSync(this.password, 12);
+		}
 	}
 
 	@OneToOne(() => UserToken, (userToken) => userToken.user)
