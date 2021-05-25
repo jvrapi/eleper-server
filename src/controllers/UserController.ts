@@ -336,7 +336,10 @@ class UserController {
 			}
 			await repository.delete(userId);
 			const userDir = path.join(__dirname, '..', '..', 'uploads', userId);
-			fs.rmSync(userDir, { recursive: true });
+			const pathExists = fs.existsSync(userDir);
+			if (pathExists) {
+				fs.rmSync(userDir, { recursive: true });
+			}
 			return response.sendStatus(200);
 		} catch (error) {
 			handleErrors(error, response, 'Erro ao excluir a conta do usuario');
