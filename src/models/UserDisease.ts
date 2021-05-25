@@ -1,8 +1,16 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
+import {
+	Column,
+	Entity,
+	JoinColumn,
+	ManyToOne,
+	OneToMany,
+	PrimaryColumn,
+} from 'typeorm';
 import { v4 as uuid } from 'uuid';
 
 import Disease from './Disease';
 import User from './User';
+import UserMedicine from './UserMedicine';
 
 @Entity()
 class UserDisease {
@@ -28,6 +36,9 @@ class UserDisease {
 	@ManyToOne(() => Disease, (disease) => disease.userDiseases)
 	@JoinColumn({ name: 'disease_id' })
 	disease: Disease;
+
+	@OneToMany(() => UserMedicine, (userMedicine) => userMedicine.userDisease)
+	userMedicines: UserMedicine[];
 
 	constructor() {
 		if (!this.id) {

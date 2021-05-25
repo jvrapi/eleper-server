@@ -13,8 +13,8 @@ class UserMedicineView {
 				name: userMedicine.medicine.name,
 			},
 			disease: {
-				id: userMedicine.disease.id,
-				name: userMedicine.disease.name,
+				id: userMedicine.userDisease.disease.id,
+				name: userMedicine.userDisease.disease.name,
 			},
 		}));
 	}
@@ -22,7 +22,7 @@ class UserMedicineView {
 	details(userMedicine: UserMedicine) {
 		return {
 			id: userMedicine.id,
-			userId: userMedicine.userId,
+			userDiseaseId: userMedicine.userDiseaseId,
 			amount: userMedicine.amount,
 			instruction: userMedicine.instruction,
 			beginDate: userMedicine.beginDate,
@@ -32,8 +32,8 @@ class UserMedicineView {
 				name: userMedicine.medicine.name,
 			},
 			disease: {
-				id: userMedicine.disease.id,
-				name: userMedicine.disease.name,
+				id: userMedicine.userDisease.disease.id,
+				name: userMedicine.userDisease.disease.name,
 			},
 		};
 	}

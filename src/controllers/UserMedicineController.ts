@@ -4,9 +4,8 @@ import { getRepository } from 'typeorm';
 import * as Yup from 'yup';
 
 import handleErrors from '../errors';
-import Medicine from '../models/Medicine';
+import UserDisease from '../models/UserDisease';
 import UserMedicine from '../models/UserMedicine';
-import { stringFormatter } from '../utils/functions';
 import UserMedicineView from '../views/UserMedicineView';
 
 const userMedicineView = new UserMedicineView();
@@ -18,7 +17,7 @@ class UserMedicineController {
 		const requestUserId = request.userId;
 
 		const repository = getRepository(UserMedicine);
-
+		const userDiseaseRepository = getRepository(UserDisease);
 		const schema = Yup.string()
 			.uuid('Id informado inválido')
 			.required('Informe o id');
@@ -32,9 +31,14 @@ class UserMedicineController {
 					.json({ message: 'Você não possui acesso a essas informações' });
 			}
 
-			const medicines = await repository.find({
+			const userDisease = await userDiseaseRepository.findOne({
 				where: { userId: id },
-				relations: ['medicine', 'disease'],
+				relations: ['userMedicines'],
+			});
+
+			const medicines = await repository.find({
+				where: { userDiseaseId: userDisease?.id },
+				relations: ['medicine', 'userDisease', 'userDisease.disease'],
 			});
 
 			return response.json(userMedicineView.list(medicines));
@@ -58,12 +62,13 @@ class UserMedicineController {
 
 		try {
 			await schema.validate(id, { abortEarly: false });
+
 			const userMedicine = await repository.findOne({
 				where: { id },
-				relations: ['medicine', 'disease'],
+				relations: ['medicine', 'userDisease', 'userDisease.disease'],
 			});
 
-			if (userMedicine?.userId !== requestUserId) {
+			if (userMedicine?.userDisease.userId !== requestUserId) {
 				return response
 					.status(401)
 					.json({ message: 'Você não possui acesso a essas informações' });
@@ -77,25 +82,21 @@ class UserMedicineController {
 
 	async saveMany(request: Request, response: Response) {
 		const userMedicines: UserMedicine[] = request.body;
-
+		const requestUserId = request.userId;
 		const repository = getRepository(UserMedicine);
-		const medicineRepository = getRepository(Medicine);
+		const userDiseaseRepository = getRepository(UserDisease);
 
 		const schema = Yup.array()
 			.min(1, 'Informe pelo menos um medicamento que o usuario toma')
 			.of(
 				Yup.object().shape({
-					diseaseId: Yup.string()
+					userDiseaseId: Yup.string()
 						.uuid('Id informado inválido')
-						.required('Informe o id da doença'),
+						.required('Informe o id da doença do usuario'),
 
-					userId: Yup.string()
-						.uuid('Id informado inválido')
-						.required('Informe o id do usuário'),
-
-					medicine: Yup.object().shape({
-						name: Yup.string().required('Informe o nome da medicação'),
-					}),
+					medicineId: Yup.string()
+						.uuid()
+						.required('Informe o nome da medicação'),
 
 					amount: Yup.string().required('Informe a quantidade tomada'),
 
@@ -131,28 +132,21 @@ class UserMedicineController {
 			);
 		try {
 			await schema.validate(userMedicines, { abortEarly: false });
+
 			const userMedicinesSaved = await Promise.all(
 				userMedicines.map(async (userMedicine) => {
-					const medicineAlreadyExists = await medicineRepository.findOne({
-						where: { name: userMedicine.medicine.name },
+					const dbInfo = await userDiseaseRepository.findOne({
+						id: userMedicine.userDiseaseId,
 					});
 
-					let saveMedicine: Medicine;
-
-					if (!medicineAlreadyExists) {
-						saveMedicine = medicineRepository.create({
-							name: stringFormatter(userMedicine.medicine.name),
+					if (dbInfo?.userId !== requestUserId) {
+						return response.json({
+							message: 'Não não pode realizar essa operação',
 						});
-
-						await medicineRepository.save(saveMedicine);
-					} else {
-						saveMedicine = medicineAlreadyExists;
 					}
-
 					const data = {
-						userId: userMedicine.userId,
-						diseaseId: userMedicine.diseaseId,
-						medicineId: saveMedicine.id,
+						userDiseaseId: userMedicine.userDiseaseId,
+						medicineId: userMedicine.medicineId,
 						amount: userMedicine.amount,
 						beginDate: moment(userMedicine.beginDate).toDate(),
 						endDate: userMedicine.endDate
@@ -181,8 +175,7 @@ class UserMedicineController {
 			instruction,
 			beginDate,
 			endDate,
-			userId,
-			diseaseId,
+			userDiseaseId,
 			medicineId,
 		} = request.body;
 
@@ -190,14 +183,14 @@ class UserMedicineController {
 
 		const repository = getRepository(UserMedicine);
 
+		const userDiseaseRepository = getRepository(UserDisease);
+
 		const schema = Yup.object().shape({
 			id: Yup.string()
 				.uuid()
 				.required('Informe o id da relação entre usuario e medicamento'),
 
-			userId: Yup.string().uuid().required('Informe o id do usuario'),
-
-			diseaseId: Yup.string().uuid().required('Informe o id da doença'),
+			userDiseaseId: Yup.string().uuid().required('Informe o id da doença'),
 
 			medicineId: Yup.string().uuid().required('Informe o id do medicamento'),
 
@@ -237,21 +230,25 @@ class UserMedicineController {
 			instruction,
 			beginDate,
 			endDate,
-			userId,
-			diseaseId,
+			userDiseaseId,
 			medicineId,
 		};
 
 		try {
 			await schema.validate(data, { abortEarly: false });
-			if (userId !== requestUserId) {
+
+			const userDiseaseInfo = await userDiseaseRepository.findOne({
+				id: userDiseaseId,
+			});
+
+			if (userDiseaseInfo?.userId !== requestUserId) {
 				return response
 					.status(401)
 					.json({ message: 'Você não pode atualizar esses dados' });
 			}
 
 			data.beginDate = moment(beginDate).toDate();
-			data.endDate = moment(endDate).toDate();
+			data.endDate = data.endDate ? moment(endDate).toDate() : null;
 
 			const userMedicine = repository.create(data);
 
@@ -259,7 +256,7 @@ class UserMedicineController {
 
 			const userMedicineResponse = await repository.findOne({
 				where: { id: userMedicine.id },
-				relations: ['medicine', 'disease'],
+				relations: ['medicine', 'userDisease', 'userDisease.disease'],
 			});
 
 			return response.json(
@@ -281,9 +278,12 @@ class UserMedicineController {
 		try {
 			await schema.validate(id, { abortEarly: false });
 
-			const dbInfo = await repository.findOne({ id });
+			const dbInfo = await repository.findOne({
+				where: { id },
+				relations: ['userDisease'],
+			});
 
-			if (dbInfo?.userId !== requestUserId) {
+			if (dbInfo?.userDisease.userId !== requestUserId) {
 				return response
 					.status(401)
 					.json({ message: 'Você não pode atualizar esses dados' });
@@ -318,12 +318,12 @@ class UserMedicineController {
 				userMedicineIds.map(async (userMedicine) => {
 					const dbInfo = await repository.findOne({
 						where: { id: userMedicine },
-						relations: ['medicine'],
+						relations: ['medicine', 'userDisease'],
 					});
 
 					const res: Record<string, string> = {};
 
-					if (dbInfo?.userId !== requestUserId) {
+					if (dbInfo?.userDisease.userId !== requestUserId) {
 						res[dbInfo?.medicine.name as string] =
 							'Você não pode excluir esse item';
 					} else {

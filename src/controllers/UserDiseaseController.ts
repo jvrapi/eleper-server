@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import moment from 'moment';
-import { getRepository } from 'typeorm';
+import { getRepository, Like } from 'typeorm';
 import * as Yup from 'yup';
 
 import handleErrors from '../errors';
@@ -28,6 +28,7 @@ class UserDiseaseController {
 			const diseases = await repository.find({
 				where: { userId },
 				relations: ['disease', 'user'],
+				order: { disease: 'ASC' },
 			});
 
 			if (userIdToken !== userId) {
@@ -78,6 +79,26 @@ class UserDiseaseController {
 				response,
 				'Erro ao tentar recuperar as informações da doença do usuário '
 			);
+		}
+	}
+
+	async getByName(request: Request, response: Response) {
+		const { name } = request.params;
+		const repository = getRepository(UserDisease);
+		const schema = Yup.string().required('Informe o nome do medicamento');
+		try {
+			await schema.validate(name, { abortEarly: false });
+
+			const userDiseases = await repository
+				.createQueryBuilder('ud')
+				.leftJoinAndSelect('ud.disease', 'disease')
+				.leftJoinAndSelect('ud.user', 'user')
+				.where(`disease.name LIKE '%${name}%' `)
+				.getMany();
+
+			return response.json(userDiseaseView.listDiseases(userDiseases));
+		} catch (error) {
+			handleErrors(error, response, 'Erro ao listar as doenças do usuário');
 		}
 	}
 

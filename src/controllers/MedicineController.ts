@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
-import { getRepository } from 'typeorm';
+import { getRepository, Like } from 'typeorm';
+import * as Yup from 'yup';
 
+import handleErrors from '../errors';
 import Medicine from '../models/Medicine';
-
 class MedicineController {
 	async save(request: Request, response: Response) {
 		const medicines: Medicine[] = request.body;
@@ -26,6 +27,22 @@ class MedicineController {
 			return response
 				.status(500)
 				.json({ error: 'Ocorreu um erro ao tentar listar as doenças' });
+		}
+	}
+
+	async listByName(request: Request, response: Response) {
+		const { name } = request.params;
+		const repository = getRepository(Medicine);
+		const schema = Yup.string().required('Informe o nome do medicamento');
+		try {
+			await schema.validate(name, { abortEarly: false });
+			const medicines = await repository.find({
+				where: { name: Like(`%${name}%`) },
+				order: { name: 'ASC' },
+			});
+			return response.json(medicines);
+		} catch (error) {
+			handleErrors(error, response, 'Erro ao listar os medicamentos');
 		}
 	}
 }

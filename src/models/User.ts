@@ -14,6 +14,7 @@ import Annotation from './Annotation';
 import Exam from './Exam';
 import Hospitalization from './Hospitalization';
 import UserDisease from './UserDisease';
+import UserMedicine from './UserMedicine';
 import UserSurgery from './UserSurgery';
 import UserToken from './UserToken';
 

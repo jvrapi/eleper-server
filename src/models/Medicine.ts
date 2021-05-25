@@ -11,7 +11,7 @@ class Medicine {
 	@Column()
 	name: string;
 
-	@OneToMany(() => UserMedicine, (userMedicine) => userMedicine.user)
+	@OneToMany(() => UserMedicine, (userMedicine) => userMedicine.medicine)
 	userMedicines: UserMedicine[];
 
 	constructor() {

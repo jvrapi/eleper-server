@@ -13,13 +13,9 @@ export class CreateUserMedicineTable1620356091837
 						length: '36',
 						isPrimary: true,
 					},
+
 					{
-						name: 'user_id',
-						type: 'varchar',
-						length: '36',
-					},
-					{
-						name: 'disease_id',
+						name: 'user_disease_id',
 						type: 'varchar',
 						length: '36',
 					},
@@ -51,15 +47,9 @@ export class CreateUserMedicineTable1620356091837
 				],
 				foreignKeys: [
 					{
-						name: 'FK_UserMedicine_User',
-						columnNames: ['user_id'],
-						referencedTableName: 'user',
-						referencedColumnNames: ['id'],
-					},
-					{
-						name: 'FK_UserMedicine_Disease',
-						columnNames: ['disease_id'],
-						referencedTableName: 'disease',
+						name: 'FK_UserMedicine_UserDisease',
+						columnNames: ['user_disease_id'],
+						referencedTableName: 'user_disease',
 						referencedColumnNames: ['id'],
 						onUpdate: 'CASCADE',
 						onDelete: 'CASCADE',
