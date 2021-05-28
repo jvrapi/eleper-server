@@ -240,7 +240,6 @@ class UserSurgeryController {
 		});
 
 		const data = { id, userId, hospitalization, surgery, afterEffects };
-
 		try {
 			await schema.validate(data, { abortEarly: false });
 

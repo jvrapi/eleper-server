@@ -218,7 +218,12 @@ class HospitalizationController {
 
 			location: Yup.string().required('Informe aonde aconteceu a internação'),
 			reason: Yup.string().required('Informe o motivo da internação'),
-			diseases: Yup.array().of(Yup.string().uuid('Id informado inválido')),
+			diseases: Yup.array().of(
+				Yup.object().shape({
+					id: Yup.string().uuid('Id informado inválido'),
+					name: Yup.string(),
+				})
+			),
 		});
 
 		try {

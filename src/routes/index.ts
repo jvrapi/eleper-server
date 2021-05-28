@@ -14,9 +14,9 @@ import UserSurgeryRoutes from './user.surgery.routes';
 
 const routes = Router();
 
-routes.use('/disease', AuthenticationMiddleware, DiseaseRoutes);
+routes.use('/disease', DiseaseRoutes);
 routes.use('/medicine', AuthenticationMiddleware, MedicineRoutes);
-routes.use('/surgery', AuthenticationMiddleware, SurgeryRoutes);
+routes.use('/surgery', SurgeryRoutes);
 routes.use('/user', UserRoutes);
 routes.use('/exam', AuthenticationMiddleware, ExamRoutes);
 routes.use('/userDisease', AuthenticationMiddleware, UserDiseaseRoutes);

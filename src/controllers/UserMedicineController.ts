@@ -17,7 +17,6 @@ class UserMedicineController {
 		const requestUserId = request.userId;
 
 		const repository = getRepository(UserMedicine);
-		const userDiseaseRepository = getRepository(UserDisease);
 		const schema = Yup.string()
 			.uuid('Id informado inválido')
 			.required('Informe o id');
@@ -31,15 +30,13 @@ class UserMedicineController {
 					.json({ message: 'Você não possui acesso a essas informações' });
 			}
 
-			const userDisease = await userDiseaseRepository.findOne({
-				where: { userId: id },
-				relations: ['userMedicines'],
-			});
-
-			const medicines = await repository.find({
-				where: { userDiseaseId: userDisease?.id },
-				relations: ['medicine', 'userDisease', 'userDisease.disease'],
-			});
+			const medicines = await repository
+				.createQueryBuilder('um')
+				.leftJoinAndSelect('um.medicine', 'm')
+				.leftJoinAndSelect('um.userDisease', 'ud')
+				.leftJoinAndSelect('ud.disease', 'd')
+				.where(`ud.userId = '${id}'`)
+				.getMany();
 
 			return response.json(userMedicineView.list(medicines));
 		} catch (error) {
