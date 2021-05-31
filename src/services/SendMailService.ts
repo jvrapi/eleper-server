@@ -14,20 +14,24 @@ class SendMailService {
 	private client: Transporter;
 
 	constructor() {
-		/*Create test account for send e-mail */
-		nodemailer.createTestAccount().then((account) => {
-			const transporter = nodemailer.createTransport({
-				host: account.smtp.host,
-				port: account.smtp.port,
-				secure: account.smtp.secure,
-				auth: {
-					user: account.user,
-					pass: account.pass,
-				},
-			});
+		const {
+			EMAIL_HOST,
+			EMAIL_PORT,
+			EMAIL_USERNAME,
+			EMAIL_PASSWORD,
+		} = process.env;
 
-			this.client = transporter;
+		const transporter = nodemailer.createTransport({
+			host: EMAIL_HOST,
+			port: +(EMAIL_PORT as string),
+			secure: false,
+			auth: {
+				user: EMAIL_USERNAME,
+				pass: EMAIL_PASSWORD,
+			},
 		});
+
+		this.client = transporter;
 	}
 
 	async execute(
@@ -49,17 +53,17 @@ class SendMailService {
 		} catch {
 			throw new Error('Erro ao tentar carregar o arquivo de template');
 		}
+
+		const mailOptions = {
+			to,
+			subject,
+			html,
+			from: process.env.EMAIL_USERNAME,
+		};
+
 		try {
-			const message = await this.client.sendMail({
-				to,
-				subject,
-				html,
-				from: 'EHR <noreplay@eleper.com.br>',
-			});
-			console.log('Message sent: %s', message.messageId);
-			console.log('Preview URL: %s', nodemailer.getTestMessageUrl(message));
-			return message;
-		} catch {
+			await this.client.sendMail(mailOptions);
+		} catch (error) {
 			throw new Error('Erro ao tentar enviar o email');
 		}
 	}

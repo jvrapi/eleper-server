@@ -2,12 +2,12 @@
 <html lang="pt">
 
 <head>
-	<title>EHR</title>
+	<title>Eliper</title>
 	<meta charset="UTF-8" />
 	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
 	<meta name="description" content="Eletronic Health Record" />
-	<meta name="author" content="EHR" />
+	<meta name="author" content="Eliper" />
 	<link rel="preconnect" href="https://fonts.gstatic.com">
 	<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@200;400;700;800&display=swap" rel="stylesheet">
 	<style>
@@ -18,54 +18,81 @@
 			height: 100vh;
 			display: flex;
 			align-items: center;
-			justify-content: flex-start;
+			justify-content: center;
 			font-family: Nunito;
-
 		}
 
-		.container {
+		table {
+			border-collapse: collapse;
+			padding: 40px 30px 40px 30px;
 			width: 600px;
-			height: 400px;
-			margin-left: 30px;
+			text-align: center;
 		}
 
-		.container> :not(:first-child) {
-			margin-top: 100px;
-		}
-
-		header p {
-			font-size: 25px;
-
-		}
-
-		main p {
-			font-size: 20px;
-
-		}
-
-		footer p {
+		p {
 			font-weight: bold;
+		}
+
+		#header>td {
+			padding: 20px 0 10px 0;
+		}
+
+		#header>h1 {
+			font-weight: bold;
+		}
+
+		#main>td {
+			background: rgb(67, 212, 255);
+			background: linear-gradient(90deg, rgba(67, 212, 255, 1) 0%, rgba(56, 171, 253, 1) 35%, rgba(41, 116, 250, 1) 100%);
+		}
+
+		#main>* {
+			color: #FFF
+		}
+
+		#main>td>p {
+			font-size: 18px;
+		}
+
+		#footer>td {
+			padding: 10px 0px 10px 0px;
+			text-align: center;
+			background-color: #d3d3d3;
+		}
+
+		#footer>td>p {
+			margin-bottom: .25rem;
+
 		}
 	</style>
 </head>
 
 <body>
-	<div class="container">
-		<header>
-			<p>Olá <strong>{{name}}</strong>, </p>
-		</header>
+	<table cellpadding="0" cellspacing="0">
+		<tr id="header">
+			<td>
+				<h1>Eliper</h1>
+				<p>Redefir Senha</p>
+			</td>
+		</tr>
+		<tr id="main">
+			<td>
+				<h2><strong>Olá, {{name}}</strong></h2>
 
-		<main>
-			<p>Informe esse códgo para redefinir a sua senha: <strong>{{code}}</strong></p>
-		</main>
+				<p>Informe o codigo para redefinir a sua senha:</p>
+				<p>
+					<strong>{{code}}</strong>
+				</p>
 
-		<footer>
-			<p> &copy; 2021 EHR. Todos os direitos reservados.</p>
-		</footer>
-	</div>
-
-
-
+			</td>
+		</tr>
+		<tr id="footer">
+			<td>
+				<p>&copy; 2021 Eliper. Todos os direitos reservados.</p>
+			</td>
+		</tr>
+	</table>
+</body>
 </body>
 
 </html>
