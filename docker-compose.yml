@@ -11,6 +11,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: "${BD_PASSWORD}"
       MYSQL_DATABASE: ${BD_DATABASE}
+      TZ: America/Sao_Paulo
 
     ports:
       - "${BD_PORT}:${BD_PORT}"
@@ -31,5 +32,7 @@ services:
       
     depends_on:
       - db
+
+    command: yarn start
 
   
