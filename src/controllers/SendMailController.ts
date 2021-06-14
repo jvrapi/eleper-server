@@ -29,7 +29,13 @@ class SendMailController {
 		};
 
 		// get the template path
-		const npsPath = resolve(__dirname, '..', 'views', 'emails', 'ehrMail.hbs');
+		const npsPath = resolve(
+			__dirname,
+			'..',
+			'templates',
+			'emails',
+			'ehrMail.hbs'
+		);
 		try {
 			await SendMailService.execute(email, variables.title, variables, npsPath);
 

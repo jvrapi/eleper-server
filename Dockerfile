@@ -8,6 +8,8 @@ RUN yarn
 
 COPY . .
 
+RUN mkdir uploads
+
 RUN yarn build 
 
 EXPOSE 3000
