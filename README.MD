@@ -97,7 +97,6 @@ Para utilizar o servidor, basta seguir os seguintes passos:
 ```
 # para rodar em dispositivos android
 4. yarn dev ou npm run dev
-
 ```
 Para criar o container só do banco de dados, basta você dentro da pasta da API, executar o comando:
 ```
