@@ -76,7 +76,7 @@ O meu trabalho de conclusão de curso está disponível no [Google Drive](https:
 
 <br><br>
 
-# 📱 Como usar
+<h1 id='como-usar'>📱 Como usar</h1>
 
 Para clonar e executar este aplicativo, você precisará do [Git](https://git-scm.com), [Node.js v14.16](nodejs.org/) ou superior. Se você quiser, pode utilizar o [Yarn v1.22](https://yarnpkg.com) ou superior instalado no seu computador. Caso você utilize o Docker e o Docker Compose, a API possui uma configuração para a criação do servidor e do banco de dados.
 
