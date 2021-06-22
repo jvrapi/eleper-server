@@ -135,7 +135,7 @@ Este projeto está sob a licença do MIT. Consulte a [licença](LICENSE) para ob
 <div align="center">
 
 
-Feito com  ❤ por João Vitor Santos 👋 Entre em contato!
+Feito com  ❤ por [João Vitor Santos](https://github.com/jvrapi) 👋 Entre em contato!
 
 
 
